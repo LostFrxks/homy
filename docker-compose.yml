@@ -1,0 +1,22 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: homy-db
+    environment:
+      POSTGRES_DB: homy
+      POSTGRES_USER: homy
+      POSTGRES_PASSWORD: homy
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U homy -d homy"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
