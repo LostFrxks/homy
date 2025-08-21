@@ -1,5 +1,7 @@
 from django.shortcuts import render
-
+from rest_framework.generics import CreateAPIView
+from rest_framework.permissions import AllowAny
+from .serializers import RegisterSerializer
 # Create your views here.
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -30,3 +32,7 @@ class MeView(APIView):
             "email": u.email,
             "role": getattr(u, "role", None),
         })
+
+class RegisterView(CreateAPIView):
+    serializer_class = RegisterSerializer
+    permission_classes = [AllowAny]

@@ -29,7 +29,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/v1/auth/login",   LoginView.as_view(), name="login"),
     path("api/v1/auth/refresh", RefreshView.as_view(), name="token_refresh"),
+    path("api/v1/properties/", include("properties.urls")),
     path("api/v1/auth/me",      MeView.as_view(), name="me"),
     path("api/v1/", include(router.urls)),
+    path("api/v1/auth/", include("users.urls")),
 ]
-

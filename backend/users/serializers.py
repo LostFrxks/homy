@@ -2,6 +2,8 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from rest_framework import serializers
 
 User = get_user_model()
 
@@ -33,3 +35,34 @@ class EmailOrUsernameTokenObtainPairSerializer(TokenObtainPairSerializer):
                 attrs[self.username_field] = user.get_username()
 
         return super().validate(attrs)
+    
+
+class RegisterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8)
+
+    class Meta:
+        model = User
+        fields = ("id", "username", "email", "password")
+
+    def validate_username(self, v):
+        if User.objects.filter(username__iexact=v).exists():
+            raise serializers.ValidationError("Username уже занят")
+        return v
+
+    def validate_email(self, v):
+        if not v:
+            return v
+        if User.objects.filter(email__iexact=v).exists():
+            raise serializers.ValidationError("Email уже используется")
+        return v
+
+    def validate_password(self, v):
+        validate_password(v)
+        return v
+
+    def create(self, validated_data):
+        return User.objects.create_user(
+            username=validated_data["username"],
+            email=validated_data.get("email"),
+            password=validated_data["password"],
+        )
