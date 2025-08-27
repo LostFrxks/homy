@@ -37,3 +37,31 @@ class Property(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.deal_type}/{self.status})"
+
+
+#Это медиа очиста при удалении
+def property_image_upload_to(instance, filename):
+    # /properties/<property_id>/<original_name>
+    return f"properties/{instance.property_id}/{filename}"
+
+class PropertyImage(models.Model):
+    property = models.ForeignKey(
+        "properties.Property",
+        related_name="images",
+        on_delete=models.CASCADE,
+    )
+    image = models.ImageField(upload_to=property_image_upload_to)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def delete(self, *args, **kwargs):
+        storage = self.image.storage
+        path = self.image.path
+        super().delete(*args, **kwargs)
+        try:
+            if storage.exists(path):
+                storage.delete(path)
+        except Exception:
+            pass
+
+    def __str__(self):
+        return f"PropertyImage<{self.id}> for Property<{self.property_id}>"

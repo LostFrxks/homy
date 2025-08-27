@@ -17,7 +17,8 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-
+from django.conf import settings
+from django.conf.urls.static import static
 from users.views import LoginView, RefreshView, MeView
 from properties.views import PropertyViewSet
 from deals.views import DealViewSet
@@ -34,3 +35,6 @@ urlpatterns = [
     path("api/v1/", include(router.urls)),
     path("api/v1/auth/", include("users.urls")),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
