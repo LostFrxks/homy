@@ -1,11 +1,6 @@
 # Homy
 
 Полный стек - Django + DRF + SimpleJWT (backend) и Vite + React + TS ( frontend ).  
-Аутентификация по email или username, CRUD по объектам недвижимости.
-Админ:
-username: lostfrxks
-email: lostfrxks@gmail.com
-password: T786352v
 
 # Структура
 
