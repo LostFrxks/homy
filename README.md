@@ -1,6 +1,7 @@
 # Homy
 
 Полный стек - Django + DRF + SimpleJWT (backend) и Vite + React + TS ( frontend ).  
+Аутентификация по email или username, CRUD по объектам недвижимости.
 
 # Структура
 
@@ -21,9 +22,9 @@ README.md
 # Запуск Backend
 
 cd backend
-python -m venv .venv
-.\.venv\Scripts\activate       
-pip install -r requirements.txt
+.\.venv\Scripts\activate
+python manage.py runserver
+
 
 # создать .env из примера
 copy .env.example .env
@@ -37,7 +38,7 @@ python manage.py runserver 0.0.0.0:8000
 # Запуск frontend
 
 cd frontend
-npm install
+npm run dev
 
 # создать .env из примера
 copy .env.example .env

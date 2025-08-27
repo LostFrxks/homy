@@ -12,6 +12,10 @@ import PropertyEdit from "./pages/PropertyEdit";
 
 import Layout from "./components/Layout";
 
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
+
+
 export default function App() {
   return (
     <BrowserRouter>
@@ -76,6 +80,11 @@ export default function App() {
             </Protected>
           }
         />
+
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      
+      <Route path="/reset-password" element={<ResetPassword />} />
+
       </Routes>
     </BrowserRouter>
   );

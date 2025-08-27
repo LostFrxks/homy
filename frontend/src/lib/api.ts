@@ -227,3 +227,23 @@ async function authedFetch(input: RequestInfo | URL, init: RequestInit = {}, ret
   const nextHeaders = { ...(init.headers || {}), Authorization: `Bearer ${newAccess}` };
   return fetch(input, { ...init, headers: nextHeaders });
 }
+
+export async function requestPasswordCode(email: string) {
+  const res = await fetch(url("/auth/password/forgot"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json(); // { ok: true }
+}
+
+export async function resetPassword(email: string, code: string, new_password: string) {
+  const res = await fetch(url("/auth/password/reset"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code, new_password }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json(); // { ok: true }
+}
