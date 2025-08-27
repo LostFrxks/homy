@@ -2,30 +2,33 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Protected from "./components/Protected";
 
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
+import Register from "./pages/Register";
 
+import Dashboard from "./pages/Dashboard";
 import PropertiesList from "./pages/PropertiesList";
 import PropertyCreate from "./pages/PropertyCreate";
-
 import PropertyDetail from "./pages/PropertyDetail";
 import PropertyEdit from "./pages/PropertyEdit";
 
-import Register from "./pages/Register";
 import Layout from "./components/Layout";
 
 export default function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* публичный роут */}
+        {/* публичные роуты */}
+        <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
-        {/* защищённые роуты */}
+        {/* защищённые роуты с Layout */} 
         <Route
           path="/"
           element={
             <Protected>
-              <Dashboard />
+              <Layout>
+                <Dashboard />
+              </Layout>
             </Protected>
           }
         />
@@ -34,7 +37,9 @@ export default function App() {
           path="/properties"
           element={
             <Protected>
-              <PropertiesList />
+              <Layout>
+                <PropertiesList />
+              </Layout>
             </Protected>
           }
         />
@@ -43,7 +48,9 @@ export default function App() {
           path="/properties/new"
           element={
             <Protected>
-              <PropertyCreate />
+              <Layout>
+                <PropertyCreate />
+              </Layout>
             </Protected>
           }
         />
@@ -52,7 +59,9 @@ export default function App() {
           path="/properties/:id"
           element={
             <Protected>
-              <PropertyDetail />
+              <Layout>
+                <PropertyDetail />
+              </Layout>
             </Protected>
           }
         />
@@ -61,80 +70,13 @@ export default function App() {
           path="/properties/:id/edit"
           element={
             <Protected>
-              <PropertyEdit />
+              <Layout>
+                <PropertyEdit />
+              </Layout>
             </Protected>
           }
         />
       </Routes>
-
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />   {/* ⬅️ добавили */}
-
-        <Route
-          path="/"
-          element={
-            <Protected>
-              <Dashboard />
-            </Protected>
-          }
-        />
-      </Routes>
-
-      <Route
-        path="/"
-        element={
-          <Protected>
-            <Layout>
-              <Dashboard />
-            </Layout>
-          </Protected>
-        }
-      />
-
-      <Route
-        path="/properties"
-        element={
-          <Protected>
-            <Layout>
-              <PropertiesList />
-            </Layout>
-          </Protected>
-        }
-      />
-
-      <Route
-        path="/properties/new"
-        element={
-          <Protected>
-            <Layout>
-              <PropertyCreate />
-            </Layout>
-          </Protected>
-        }
-      />
-
-      <Route
-        path="/properties/:id"
-        element={
-          <Protected>
-            <Layout>
-              <PropertyDetail />
-            </Layout>
-          </Protected>
-        }
-      />
-
-      <Route
-        path="/properties/:id/edit"
-        element={
-          <Protected>
-            <Layout>
-              <PropertyEdit />
-            </Layout>
-          </Protected>
-        }
-      />
     </BrowserRouter>
   );
 }

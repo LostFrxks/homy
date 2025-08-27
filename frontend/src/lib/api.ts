@@ -1,4 +1,4 @@
-const BASE = (import.meta.env.VITE_API_URL as string).replace(/\/+$/, "");
+const BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/v1").replace(/\/+$/, "");
 const url = (p: string) => `${BASE}${p}`;
 
 // === helpers ===
@@ -16,20 +16,19 @@ async function handleAuth(res: Response) {
   return res;
 }
 
-export async function login(identity: string, password: string) {
-  const body = identity.includes("@")
-    ? { email: identity, password }
-    : { username: identity, password };
-
+export async function login(email: string, password: string) {
   const res = await fetch(url("/auth/login"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+    body: JSON.stringify({ email, password }), // <-- только email
   });
-
-  await handleAuth(res);
+  if (res.status === 401) {
+    localStorage.removeItem("access");
+    window.location.assign("/login");
+    throw new Error("Unauthorized");
+  }
   if (!res.ok) throw new Error("Ошибка при логине");
-  return res.json(); // { access, refresh }
+  return res.json(); // ожидаем { access, refresh }
 }
 
 export async function getMe(token: string) {
@@ -79,13 +78,25 @@ export async function getMeSelf(): Promise<User> {
   return res.json();
 }
 
+// На бэке area/price — DecimalField → чаще приходит строкой.
+interface RawProperty extends Omit<Property, "price" | "area"> {
+  price: string | number;
+  area: string | number;
+}
+
+const normalizeProperty = (p: RawProperty): Property => ({
+  ...p,
+  price: typeof p.price === "string" ? Number(p.price) : p.price,
+  area: typeof p.area === "string" ? Number(p.area) : p.area,
+});
+
 // Детальная карточка
 export async function getProperty(id: string | number): Promise<Property> {
   const res = await authedFetch(url(`/properties/${id}/`));
   await handleAuth(res);
   if (!res.ok) throw new Error("Failed to load property");
-  const data = await res.json();
-  return normalizeProperty(data) as Property;
+  const data = (await res.json()) as RawProperty;
+  return normalizeProperty(data);
 }
 
 // Удаление объекта
@@ -113,17 +124,9 @@ export async function updateProperty(
     const text = await res.text();
     throw new Error(text || "Failed to update property");
   }
-  const data = await res.json();
-  return normalizeProperty(data) as Property;
+  const data = (await res.json()) as RawProperty;
+  return normalizeProperty(data);
 }
-
-
-// На бэке area/price — DecimalField → чаще приходит строкой.
-const normalizeProperty = (p: any): Property => ({
-  ...p,
-  price: typeof p.price === "string" ? Number(p.price) : p.price,
-  area: typeof p.area === "string" ? Number(p.area) : p.area,
-});
 
 // === API: list with filters/pagination ===
 export async function getProperties(params?: {
@@ -150,7 +153,7 @@ export async function getProperties(params?: {
   await handleAuth(res);
   if (!res.ok) throw new Error("Failed to load properties");
 
-  const data = (await res.json()) as Paginated<any>;
+  const data = (await res.json()) as Paginated<RawProperty>;
   return {
     ...data,
     results: data.results.map(normalizeProperty),
@@ -180,8 +183,8 @@ export async function createProperty(payload: {
     const text = await res.text();
     throw new Error(text || "Failed to create property");
   }
-  const data = await res.json();
-  return normalizeProperty(data) as Property;
+  const data = (await res.json()) as RawProperty;
+  return normalizeProperty(data);
 }
 
 async function refreshAccess(): Promise<string | null> {

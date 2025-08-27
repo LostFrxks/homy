@@ -22,6 +22,8 @@ from django.conf.urls.static import static
 from users.views import LoginView, RefreshView, MeView
 from properties.views import PropertyViewSet
 from deals.views import DealViewSet
+from django.views.generic import TemplateView
+from django.urls import re_path
 router = DefaultRouter()
 router.register(r"properties", PropertyViewSet, basename="property")
 router.register(r"deals", DealViewSet, basename="deal")
@@ -38,3 +40,4 @@ urlpatterns = [
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

@@ -7,35 +7,38 @@ from rest_framework import serializers
 
 User = get_user_model()
 
-class EmailOrUsernameTokenObtainPairSerializer(TokenObtainPairSerializer):
+class LoginByEmailSerializer(TokenObtainPairSerializer):
     """
-    Логин по email ИЛИ username.
-    Делаем username необязательным и добавляем поле email.
-    Если пришёл email — ищем пользователя и подставляем его username перед базовой проверкой.
+    Принимает только email + password.
+    Находит пользователя по email (case-insensitive),
+    мапит на attrs['username'] и дальше отдаёт в SimpleJWT.
     """
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # username (т.е. self.username_field) больше не обязателен
-        self.fields[self.username_field].required = False
-        # email — опциональное поле
-        self.fields['email'] = serializers.EmailField(required=False)
+    # Объявим поля явно ради понятности
+    email = serializers.EmailField(write_only=True)
+    password = serializers.CharField(write_only=True)
 
     def validate(self, attrs):
-        email = (self.initial_data.get("email") or "").strip()
-        username = (self.initial_data.get(self.username_field) or "").strip()
+        email = self.initial_data.get("email")
+        password = self.initial_data.get("password")
 
-        if email and not username:
-            user = (
-                User.objects
-                .filter(email__iexact=email)
-                .order_by("id")
-                .first()
-            )
-            if user:
-                attrs[self.username_field] = user.get_username()
+        if not email or not password:
+            raise serializers.ValidationError("Требуются email и password.")
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            # одинаковое сообщение, чтобы не палить существование почты
+            raise serializers.ValidationError("Неверный email или пароль.")
+
+        if not user.is_active:
+            raise serializers.ValidationError("Аккаунт неактивен.")
+
+        # Подставляем username, который ожидает базовый сериализатор
+        attrs["username"] = getattr(user, User.USERNAME_FIELD)  # обычно 'username'
+        attrs["password"] = password
 
         return super().validate(attrs)
-    
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8)

@@ -5,7 +5,7 @@ class PropertyImageInline(admin.TabularInline):
     model = PropertyImage
     extra = 0
 
-@admin.register(Property)
+@admin.register(Property)   
 class PropertyAdmin(admin.ModelAdmin):
     inlines = [PropertyImageInline]
     list_display = ("id", "title", "deal_type", "status", "price", "rooms", "area", "realtor", "created_at")

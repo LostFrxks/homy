@@ -9,13 +9,13 @@ from rest_framework.views import APIView
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .serializers import EmailOrUsernameTokenObtainPairSerializer
+from .serializers import LoginByEmailSerializer 
 from django.contrib.auth import get_user_model
 
-User = get_user_model()
+User = get_user_model() 
 
 class LoginView(TokenObtainPairView):
-    serializer_class = EmailOrUsernameTokenObtainPairSerializer
+    serializer_class = LoginByEmailSerializer
     permission_classes = [permissions.AllowAny]
 
 class RefreshView(TokenRefreshView):
