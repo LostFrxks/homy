@@ -6,11 +6,15 @@ class PropertySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Property
-        fields = [
-            "id", "title", "description", "address",
-            "deal_type", "status", "district",
-            "rooms", "area", "price",
-            "realtor", "realtor_name",
-            "is_active", "created_at", "updated_at",
-        ]
-        read_only_fields = ["id", "realtor_name", "created_at", "updated_at"]
+        fields = "__all__"
+        read_only_fields = ("id","realtor","realtor_name","created_at","updated_at")
+        extra_kwargs = {
+            "address":  {"required": True, "allow_blank": False},
+            "district": {"required": True, "allow_blank": False},
+            "deal_type":{"required": True},
+            "status":   {"required": True},
+            "rooms":    {"required": True},
+            "area":     {"required": True},
+            "price":    {"required": True},
+        }
+        read_only_fields = ["id", "realtor", "realtor_name", "created_at", "updated_at"]

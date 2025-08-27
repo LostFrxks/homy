@@ -68,7 +68,14 @@ export default function PropertiesList() {
             <option value="sale">Продажа</option>
             <option value="rent">Аренда</option>
           </select>
-          <input placeholder="Район" value={district} onChange={(e) => setP("district", e.target.value)} />
+          <select value={district} onChange={(e) => setP("district", e.target.value)}>
+            <option value="">Все районы</option>
+            <option value="Первомайский район">Первомайский район</option>
+            <option value="Свердловский район">Свердловский район</option>
+            <option value="Октябрьский район">Октябрьский район</option>
+            <option value="Ленинский район">Ленинский район</option>
+          </select>
+
           <input placeholder="Комнат" type="number" value={rooms} onChange={(e) => setP("rooms", e.target.value)} />
           <input placeholder="Цена от" type="number" value={price_min} onChange={(e) => setP("price_min", e.target.value)} />
           <input placeholder="Цена до" type="number" value={price_max} onChange={(e) => setP("price_max", e.target.value)} />
@@ -92,18 +99,47 @@ export default function PropertiesList() {
       {/* Список */}
       <div style={{ border: "1px solid #ccc", borderRadius: "6px" }}>
         {loading && <div style={{ padding: "10px" }}>Загрузка…</div>}
-        {!loading && data.items.length === 0 && <div style={{ padding: "10px" }}>Ничего не найдено</div>}
-        {data.items.map((p) => (
-          <div key={p.id} style={{ padding: "10px", borderBottom: "1px solid #eee", display: "flex", justifyContent: "space-between" }}>
-            <div>
-              <div style={{ fontWeight: "500" }}>{p.title}</div>
-              <div style={{ fontSize: "14px", color: "#555" }}>
-                {p.deal_type} • {p.district || "—"} • {p.rooms}к • {Number(p.area)} м² •{" "}
-                {Number(p.price).toLocaleString()} ₸
-              </div>
-            </div>
-          </div>
-        ))}
+
+        {!loading && data.items.length === 0 && (
+          <div style={{ padding: "10px" }}>Ничего не найдено</div>
+        )}
+
+        {!loading &&
+          data.items.map((p) => {
+            const areaNum = Number(p.area);
+            const priceNum = Number(p.price);
+            const areaText = Number.isFinite(areaNum) ? `${areaNum} м²` : "—";
+            const priceText = Number.isFinite(priceNum) ? `${priceNum.toLocaleString()} ₸` : "—";
+
+            return (
+              <Link
+                key={p.id}
+                to={`/properties/${p.id}`}
+                style={{ display: "block", textDecoration: "none", color: "inherit" }}
+              >
+                <div
+                  style={{
+                    padding: "10px",
+                    borderBottom: "1px solid #eee",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    cursor: "pointer",
+                    background: "#fff",
+                    transition: "background .15s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "#f7f7f7")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "#fff")}
+                >
+                  <div>
+                    <div style={{ fontWeight: 500 }}>{p.title}</div>
+                    <div style={{ fontSize: "14px", color: "#555" }}>
+                      {p.deal_type} • {p.district || "—"} • {p.rooms}к • {areaText} • {priceText}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
       </div>
 
       {/* Пагинация */}

@@ -33,7 +33,7 @@ export async function login(identity: string, password: string) {
 }
 
 export async function getMe(token: string) {
-  const res = await fetch(url("/auth/me"), {
+  const res = await authedFetch(url("/auth/me"), {
     headers: { Authorization: `Bearer ${token}` },
   });
   await handleAuth(res);
@@ -59,12 +59,64 @@ export type Property = {
   updated_at?: string;
 };
 
-export type Paginated<T> = {
+export type Paginated<T> = {  
   count: number;
   next: string | null;
   previous: string | null;
   results: T[];
 };
+
+// Тип пользователя — для проверки владельца на фронте
+export type User = { id: number; email: string };
+
+// Удобный вариант getMe без явной передачи токена (оставь И СТАРЫЙ getMe(token))
+export async function getMeSelf(): Promise<User> {
+  const t = localStorage.getItem("access");
+  if (!t) throw new Error("No token");
+  const res = await authedFetch(url("/auth/me"), { headers: { Authorization: `Bearer ${t}` } });
+  await handleAuth(res);
+  if (!res.ok) throw new Error("Не удалось получить профиль");
+  return res.json();
+}
+
+// Детальная карточка
+export async function getProperty(id: string | number): Promise<Property> {
+  const res = await authedFetch(url(`/properties/${id}/`));
+  await handleAuth(res);
+  if (!res.ok) throw new Error("Failed to load property");
+  const data = await res.json();
+  return normalizeProperty(data) as Property;
+}
+
+// Удаление объекта
+export async function deleteProperty(id: string | number): Promise<void> {
+  const res = await authedFetch(url(`/properties/${id}/`), { method: "DELETE" });
+  await handleAuth(res);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to delete property");
+  }
+}
+
+// (Опционально) Обновление — пригодится для /edit
+export async function updateProperty(
+  id: string | number,
+  payload: Partial<Omit<Property, "id" | "realtor" | "created_at" | "updated_at">>
+): Promise<Property> {
+  const res = await authedFetch(url(`/properties/${id}/`), {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  await handleAuth(res);
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || "Failed to update property");
+  }
+  const data = await res.json();
+  return normalizeProperty(data) as Property;
+}
+
 
 // На бэке area/price — DecimalField → чаще приходит строкой.
 const normalizeProperty = (p: any): Property => ({
@@ -93,9 +145,7 @@ export async function getProperties(params?: {
     if (v !== undefined && v !== null && v !== "") qs.set(k, String(v));
   });
 
-  const res = await fetch(url(`/properties/?${qs.toString()}`), {
-    headers: auth(),
-  });
+  const res = await authedFetch(url(`/properties/?${qs.toString()}`));
 
   await handleAuth(res);
   if (!res.ok) throw new Error("Failed to load properties");
@@ -119,9 +169,9 @@ export async function createProperty(payload: {
   area: number;
   price: number;
 }) {
-  const res = await fetch(url("/properties/"), {
+  const res = await authedFetch(url("/properties/"), {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...auth() },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
 
@@ -132,4 +182,45 @@ export async function createProperty(payload: {
   }
   const data = await res.json();
   return normalizeProperty(data) as Property;
+}
+
+async function refreshAccess(): Promise<string | null> {
+  const refresh = localStorage.getItem("refresh");
+  if (!refresh) return null;
+
+  const res = await fetch(url("/auth/refresh/"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refresh }),
+  });
+
+  if (!res.ok) return null;
+  const data = await res.json(); // ожидаем { access: "..." }
+  if (data?.access) {
+    localStorage.setItem("access", data.access);
+    return data.access;
+  }
+  return null;
+}
+
+// 2) Универсальный helper-запрос с авто-рефрешем
+async function authedFetch(input: RequestInfo | URL, init: RequestInit = {}, retry = false): Promise<Response> {
+  const headers = { ...(init.headers || {}), ...auth() };
+  const res = await fetch(input, { ...init, headers });
+
+  if (res.status !== 401) return res;
+
+  // Если уже пробовали рефреш — не зацикливаемся
+  if (retry) return res;
+
+  // Не пытаемся рефрешить сами эндпоинты логина/рефреша
+  const u = String(input);
+  if (u.includes("/auth/login") || u.includes("/auth/refresh")) return res;
+
+  const newAccess = await refreshAccess();
+  if (!newAccess) return res;
+
+  // Повторяем исходный запрос уже с новым access
+  const nextHeaders = { ...(init.headers || {}), Authorization: `Bearer ${newAccess}` };
+  return fetch(input, { ...init, headers: nextHeaders });
 }
