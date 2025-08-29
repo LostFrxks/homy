@@ -1,3 +1,4 @@
+from django.db.models import Prefetch
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -19,9 +20,14 @@ class PropertyFilter(filters.FilterSet):
         fields = ["deal_type", "status", "district", "rooms"]
 
 class PropertyViewSet(viewsets.ModelViewSet):
-    queryset = Property.objects.all().order_by("-created_at")
-    serializer_class = PropertySerializer
+    queryset = (
+        Property.objects.all()
+        .select_related("realtor")
+        .prefetch_related(Prefetch("images", queryset=PropertyImage.objects.order_by("-created_at")))
+        .order_by("-created_at")
+    )
 
+    serializer_class = PropertySerializer
     permission_classes = [IsOwnerOrReadOnly]
 
     filter_backends   = [filters.DjangoFilterBackend, SearchFilter, OrderingFilter]
@@ -72,3 +78,8 @@ class PropertyViewSet(viewsets.ModelViewSet):
         img = get_object_or_404(PropertyImage, id=image_id, property=prop)
         img.delete()  # файл удалится благодаря переопределённому delete() в модели
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx["request"] = self.request
+        return ctx

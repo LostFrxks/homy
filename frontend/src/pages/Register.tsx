@@ -49,7 +49,7 @@ export default function Register() {
 
   // парсим ответы DRF и красиво маппим
   async function parseServerError(res: Response): Promise<FieldErrors> {
-    let text = await res.text();
+    const text = await res.text();
     try {
       const data = JSON.parse(text);
       const fe: FieldErrors = {};
