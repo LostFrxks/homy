@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.core.exceptions import ValidationError 
 
 class Property(models.Model):
     class DealType(models.TextChoices):
@@ -37,9 +38,24 @@ class Property(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.deal_type}/{self.status})"
+    
+    def clean(self):
+        errs = {}
+        if self.price is not None and self.price < 0:
+            errs["price"] = "Price must be ≥ 0"
+        if self.area is not None and self.area < 0:
+            errs["area"] = "Area must be ≥ 0"
+        if self.rooms is not None and self.rooms < 0:
+            errs["rooms"] = "Rooms must be ≥ 0"
+        if not self.address:
+            errs["address"] = "Address is required"
+        if not self.district:
+            errs["district"] = "District is required"
+        if errs:
+            raise ValidationError(errs)
 
 
-#Это медиа очиста при удалении
+# Это медиа очистка при удалении
 def property_image_upload_to(instance, filename):
     # /properties/<property_id>/<original_name>
     return f"properties/{instance.property_id}/{filename}"

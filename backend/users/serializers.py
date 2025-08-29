@@ -7,6 +7,7 @@ from .models import PasswordResetCode
 from django.utils import timezone
 from datetime import timedelta
 
+
 User = get_user_model()
 
 class LoginByEmailSerializer(TokenObtainPairSerializer):
@@ -51,7 +52,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     def validate_username(self, v):
         if User.objects.filter(username__iexact=v).exists():
-            raise serializes.ValidationError("Username уже занят")
+            raise serializers.ValidationError("Username уже занят")
         return v
 
     def validate_email(self, v):
@@ -119,7 +120,6 @@ class ResetPasswordSerializer(serializers.Serializer):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            # Молча притворяемся, что всё ок
             raise serializers.ValidationError({"code": "Неверный код или срок действия истёк."})
 
         rec = (
@@ -131,8 +131,8 @@ class ResetPasswordSerializer(serializers.Serializer):
         if not rec or not rec.is_valid():
             raise serializers.ValidationError({"code": "Неверный код или срок действия истёк."})
 
-        # стандартные проверки Django
-        password_validation.validate_password(pwd, user=user)
+        # ИСПРАВЛЕНО: используем импортированную функцию
+        validate_password(pwd, user=user)  # ← ТЕПЕРЬ РАБОТАЕТ!
 
         attrs["user"] = user
         attrs["rec"] = rec

@@ -38,3 +38,13 @@ class PropertySerializer(serializers.ModelSerializer):
             "area":     {"required": True},
             "price":    {"required": True},
         }
+
+    def validate(self, attrs):
+        for k in ["price", "area", "rooms"]:
+            v = attrs.get(k)
+            if v is not None and v < 0:
+                raise serializers.ValidationError({k: "Must be ≥ 0"})
+        for k in ["address", "district"]:
+            if not attrs.get(k):
+                raise serializers.ValidationError({k: "Required"})
+        return attrs     

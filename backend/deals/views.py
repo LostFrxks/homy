@@ -1,10 +1,10 @@
 from django.shortcuts import render
-
-# Create your views here.
 from rest_framework import viewsets, permissions
 from django_filters import rest_framework as filters
+from . import models
 from .models import Deal
 from .serializers import DealSerializer
+
 
 class DealFilter(filters.FilterSet):
     price_min = filters.NumberFilter(field_name="price", lookup_expr="gte")
