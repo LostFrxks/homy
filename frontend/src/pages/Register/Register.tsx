@@ -7,7 +7,6 @@ type FieldErrors = {
   password?: string;
   agree?: string;
   general?: string;
-  // спец-метка, если бэк вернул "too common"
   passwordCommon?: boolean;
 };
 
@@ -16,7 +15,6 @@ function isNumericOnly(s: string) {
 }
 
 function strength(password: string) {
-  // очень простой скорер для UX
   let score = 0;
   if (password.length >= 6) score++;
   if (!isNumericOnly(password)) score++;
@@ -43,28 +41,24 @@ export default function Register() {
 
   function setField<K extends keyof typeof form>(key: K, val: (typeof form)[K]) {
     setForm((f) => ({ ...f, [key]: val }));
-    // очищаем ошибку у поля при изменении
     setErrors((e) => ({ ...e, [key]: undefined, general: undefined }));
   }
 
-  // парсим ответы DRF и красиво маппим
   async function parseServerError(res: Response): Promise<FieldErrors> {
     const text = await res.text();
     try {
       const data = JSON.parse(text);
       const fe: FieldErrors = {};
-      // типичные ключи от DRF: username/email/password/non_field_errors/detail
-      if (data.username) fe.email = String(data.username[0] || data.username); // username=email у нас
+      if (data.username) fe.email = String(data.username[0] || data.username);
       if (data.email) fe.email = String(data.email[0] || data.email);
       if (data.password) {
         const list: string[] = Array.isArray(data.password) ? data.password : [String(data.password)];
         fe.password = list.join(" ");
-        // отметка о common password, чтобы подсветить чек-лист
         fe.passwordCommon = list.some((m) => /too common/i.test(m));
       }
       if (data.non_field_errors) fe.general = String(data.non_field_errors[0] || data.non_field_errors);
       if (data.detail) fe.general = String(data.detail);
-      // если ничего не распознали — положим сырой текст в general
+      if (data.error) fe.general = String(data.error); // <-- наши новые ручки возвращают {error: "..."}
       if (!fe.email && !fe.password && !fe.general && text) fe.general = text;
       return fe;
     } catch {
@@ -90,47 +84,28 @@ export default function Register() {
 
     try {
       setLoading(true);
-      setErrors({}); // очистим старые
+      setErrors({});
 
-      const base = import.meta.env.VITE_API_URL.replace(/\/+$/, ""); // .../api/v1
-      const res = await fetch(`${base}/auth/register/`, {
+      const base = import.meta.env.VITE_API_URL.replace(/\/+$/, ""); // например: http://127.0.0.1:8000/api/v1
+      // ШАГ 1: шлём запрос на отправку кода (двухшаговая регистрация)
+      const res = await fetch(`${base}/auth/register-request-code/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          username: form.email.trim(),      // служебный логин
+          name: form.name.trim(),
           email: form.email.trim(),
           password: form.password,
-          // "name" (красивое отображение) пока не отправляем — решим позже
         }),
       });
 
       if (!res.ok) {
-      const fe = await parseServerError(res);
-      setErrors(fe);
-      return;
-    }
+        const fe = await parseServerError(res);
+        setErrors(fe);
+        return;
+      }
 
-    // успех регистрации → сразу логинимся
-    const loginRes = await fetch(`${base}/auth/login/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: form.email.trim(),
-        password: form.password,
-      }),
-    });
-
-    if (!loginRes.ok) {
-      setErrors({ general: "Аккаунт создан, но вход не выполнен. Попробуйте войти вручную." });
-      return;
-    }
-
-    const tokens = await loginRes.json();
-    localStorage.setItem("access", tokens.access);
-    localStorage.setItem("refresh", tokens.refresh);
-
-    nav("/dashboard", { replace: true });
-
+      // Успех → кидаем пользователя на страницу подтверждения кода
+      nav(`/verify-email?email=${encodeURIComponent(form.email.trim())}`, { replace: true });
     } catch {
       setErrors({ general: "Сеть недоступна или сервер не отвечает" });
     } finally {
@@ -138,7 +113,6 @@ export default function Register() {
     }
   }
 
-  // цвета/ширина «прогресса» для индикатора
   const strengthLabel = ["Очень слабый", "Слабый", "Средний", "Хороший", "Сильный"][pwdStrength] || "Очень слабый";
   const strengthWidth = `${(pwdStrength / 4) * 100}%`;
   const strengthBg = ["#fee2e2", "#fecaca", "#fde68a", "#bbf7d0", "#86efac"][pwdStrength] || "#fee2e2";
@@ -166,9 +140,7 @@ export default function Register() {
         }}
       >
         <h2 style={{ margin: 0, marginBottom: 8 }}>Создать аккаунт</h2>
-        <p style={{ marginTop: 0, color: "#555" }}>
-          Зарегистрируйтесь как риелтор, чтобы публиковать объекты
-        </p>
+        <p style={{ marginTop: 0, color: "#555" }}>Зарегистрируйтесь как риелтор, чтобы публиковать объекты</p>
 
         {errors.general && (
           <div
@@ -235,20 +207,13 @@ export default function Register() {
                 required
                 style={{ flex: 1 }}
                 aria-invalid={!!errors.password}
-                aria-describedby={
-                  errors.password ? "error-password" : "hint-password"
-                }
+                aria-describedby={errors.password ? "error-password" : "hint-password"}
               />
-              <button
-                type="button"
-                onClick={() => setShowPwd((s) => !s)}
-                style={{ padding: "6px 10px" }}
-              >
+              <button type="button" onClick={() => setShowPwd((s) => !s)} style={{ padding: "6px 10px" }}>
                 {showPwd ? "Скрыть" : "Показать"}
               </button>
             </div>
 
-            {/* Индикатор силы пароля */}
             <div style={{ marginTop: 8 }}>
               <div style={{ height: 6, background: "#f3f4f6", borderRadius: 999 }}>
                 <div
@@ -264,21 +229,10 @@ export default function Register() {
               <div id="hint-password" style={{ fontSize: 12, color: "#6b7280", marginTop: 6 }}>
                 Надёжность: {strengthLabel}
               </div>
-
-              {/* Чек-лист ограничений */}
               <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: 12, color: "#374151" }}>
-                <li style={{ color: form.password.length >= 6 ? "#16a34a" : "#b91c1c" }}>
-                  Длина не менее 6 символов
-                </li>
-                <li style={{ color: !isNumericOnly(form.password) ? "#16a34a" : "#b91c1c" }}>
-                  Не только цифры
-                </li>
-                {/* Если сервер вернул "too common", подсветим */}
-                {errors.passwordCommon && (
-                  <li style={{ color: "#b91c1c" }}>
-                    Слишком распространённый пароль — выберите другой
-                  </li>
-                )}
+                <li style={{ color: form.password.length >= 6 ? "#16a34a" : "#b91c1c" }}>Длина не менее 6 символов</li>
+                <li style={{ color: !isNumericOnly(form.password) ? "#16a34a" : "#b91c1c" }}>Не только цифры</li>
+                {errors.passwordCommon && <li style={{ color: "#b91c1c" }}>Слишком распространённый пароль</li>}
               </ul>
             </div>
 
@@ -318,7 +272,7 @@ export default function Register() {
             }}
             aria-busy={loading}
           >
-            {loading ? "Создаю…" : "Зарегистрироваться"}
+            {loading ? "Отправляем код…" : "Зарегистрироваться"}
           </button>
 
           <div style={{ textAlign: "center", fontSize: 14 }}>

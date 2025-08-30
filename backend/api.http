@@ -1,167 +1,43 @@
 @host = http://127.0.0.1:8000
-@json = application/json
+@api = {{host}}/api/v1/auth
+@email = murem810@gmail.com   # ← поставь свою, если отправляешь через SMTP
+@name = Emir
+@password = 12345678
 
-
-
-### 1) Register A (realtor)
-# @name registerA
-POST {{host}}/api/v1/auth/register/
-Content-Type: {{json}}
-
-{
-  "email": "a@test.com",
-  "password": "Qwerty123!",
-  "first_name": "A",
-  "last_name": "Realtor"
-}
-
-### 2) Register B (another realtor)
-# @name registerB
-POST {{host}}/api/v1/auth/register/
-Content-Type: {{json}}
-
-{
-  "email": "b@test.com", 
-  "password": "Qwerty123!",
-  "first_name": "B",
-  "last_name": "Manager"
-}
-
-### 3) Login A
-# @name loginA
-POST {{host}}/api/v1/auth/login/
-Content-Type: {{json}}
-
-{
-  "email": "a@test.com",
-  "password": "Qwerty123!"
-}
-
-### 4) Save A tokens
-@accessA = {{loginA.response.body.access}}
-@refreshA = {{loginA.response.body.refresh}}
-
-### 5) Me (A) - проверяем данные пользователя
-GET {{host}}/api/v1/auth/me/
-Authorization: Bearer {{accessA}}
-Content-Type: {{json}}
-
-### 6) Create Property (owner=A)
-# @name createProp
-POST {{host}}/api/v1/properties/
-Authorization: Bearer {{accessA}}
-Content-Type: {{json}}
-
-{
-  "title": "Test Flat in Center",
-  "description": "Nice view with balcony",
-  "price": 100000,
-  "area": 55.5,
-  "rooms": 2,
-  "address": "Abaya 10, Almaty",
-  "district": "Center",
-  "deal_type": "sale",
-  "status": "active"
-}
-
-### 7) Capture property id
-@propId = {{createProp.response.body.id}}
-
-### 8) List My Properties (A) - должны увидеть созданное свойство
-GET {{host}}/api/v1/properties/
-Authorization: Bearer {{accessA}}
-Content-Type: {{json}}
-
-### 9) Update Property as A (allowed) - тест прав владельца
-PATCH {{host}}/api/v1/properties/{{propId}}/
-Authorization: Bearer {{accessA}}
-Content-Type: {{json}}
-
-{
-  "price": 110000,
-  "description": "Updated description with better view"
-}
-
-### 10) Login B
-# @name loginB
-POST {{host}}/api/v1/auth/login/
-Content-Type: {{json}}
-
-{
-  "email": "b@test.com",
-  "password": "Qwerty123!"
-}
-
-### 11) Save B token
-@accessB = {{loginB.response.body.access}}
-
-### 12) List Properties as B (should be empty - только свои свойства)
-GET {{host}}/api/v1/properties/
-Authorization: Bearer {{accessB}}
-Content-Type: {{json}}
-
-### 13) Read A's property as B (should be 404 - нет доступа к чужим)
-GET {{host}}/api/v1/properties/{{propId}}/
-Authorization: Bearer {{accessB}}
-Content-Type: {{json}}
-
-### 14) Update A's property as B (should be 403/404 - нет прав)
-PATCH {{host}}/api/v1/properties/{{propId}}/
-Authorization: Bearer {{accessB}}
-Content-Type: {{json}}
-
-{
-  "price": 99000
-}
-
-### 15) Forgot password (A) - запрос кода сброса
-# @name forgotPassword
-POST {{host}}/api/v1/auth/password/forgot
-Content-Type: {{json}}
-
-{
-  "email": "a@test.com"
-}
-
-### 16) Get reset code from console or DB
-# Проверь консоль сервера или выполни:
-# python manage.py shell
-# from users.models import PasswordResetCode
-# print(PasswordResetCode.objects.last().code)
-
-### 17) Reset password with code
-# @name resetPassword
-POST http://127.0.0.1:8000/api/v1/auth/password/reset
+### 1) Запросить код (на почту придёт письмо)
+POST {{api}}/register-request-code/
 Content-Type: application/json
 
 {
-  "email": "a@test.com",
-  "code": "905929",  # ЗАМЕНИ НА РЕАЛЬНЫЙ КОД ИЗ КОНСОЛИ!
-  "new_password": "NewQwerty123!"
+  "name": "{{name}}",
+  "email": "{{email}}",
+  "password": "{{password}}"
 }
 
-### 18) Login with new password
-POST {{host}}/api/v1/auth/login/
-Content-Type: {{json}}
+> {% client.test("request code ok", function () {
+    client.assert(response.status === 200);
+    client.log("Код отправлен на {{email}}");
+}) %}
+
+### 2) Подтвердить код (вставь код из письма)
+POST {{api}}/register-verify-code/
+Content-Type: application/json
 
 {
-  "email": "a@test.com",
-  "password": "NewQwerty123!"
+  "email": "{{email}}",
+  "code": "123456"   // ← сюда код из письма
 }
 
-### 19) Refresh token
-POST {{host}}/api/v1/auth/token/refresh/
-Content-Type: {{json}}
+> {% client.test("verify ok", function () {
+    client.assert(response.status === 200);
+    client.assert(response.body.access, "нет access токена");
+    client.global.set("accessToken", response.body.access);
+}) %}
 
-{
-  "refresh": "{{refreshA}}"
-}
+### 3) Проверка защищёнки (пример)
+GET {{host}}/api/v1/properties/
+Authorization: Bearer {{accessToken}}
 
-### 20) Logout (если реализовано)
-POST {{host}}/api/v1/auth/logout/
-Authorization: Bearer {{accessA}}
-Content-Type: {{json}}
-
-{
-  "refresh": "{{refreshA}}"
-}
+> {% client.test("protected not 401", function () {
+    client.assert(response.status !== 401, "Unauthorized");
+}) %}

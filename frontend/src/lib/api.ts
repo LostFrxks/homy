@@ -256,3 +256,69 @@ export async function resetPassword(email: string, code: string, new_password: s
   if (!res.ok) throw new Error(await res.text());
   return res.json(); // { ok: true }
 }
+
+
+// src/lib/api.ts
+export async function verifyRegisterCode(payload: { email: string; code: string }) {
+  const r = await fetch("/api/v1/auth/register-verify-code/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || "Неверный/просроченный код");
+  return data as { access: string; refresh: string; user: { id: number; username: string; email: string } };
+}
+
+export async function resendRegisterCode(email: string) {
+  const r = await fetch("/api/v1/auth/register-resend-code/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  const data = await r.json();
+  if (!r.ok) throw new Error(data.error || "Не удалось отправить код");
+  return data as { message: string };
+}
+
+export async function passwordForgot(newPassword: string, token: string) {
+  const res = await fetch("/api/v1/auth/password/forgot/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ new_password: newPassword }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function passwordForgotNoAuth(email: string, newPassword: string) {
+  const res = await fetch("/api/v1/auth/password/forgot-noauth/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, new_password: newPassword }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// (на следующем шаге пригодятся)
+export async function passwordReset(code: string, token: string) {
+  const res = await fetch("/api/v1/auth/password/reset/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ code }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+export async function confirmPasswordCode(email: string, code: string) {
+  const res = await fetch("/api/v1/auth/password/reset-noauth/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, code }),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
