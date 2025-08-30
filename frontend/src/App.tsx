@@ -1,20 +1,17 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Protected from "./components/Protected";
 
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-
-import Dashboard from "./pages/Dashboard";
-import PropertiesList from "./pages/PropertiesList";
-import PropertyCreate from "./pages/PropertyCreate";
-import PropertyDetail from "./pages/PropertyDetail";
-import PropertyEdit from "./pages/PropertyEdit";
-
 import Layout from "./components/Layout";
 
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/ResetPassword";
-
+import Login from "@/pages/Login/Login";
+import Register from "@/pages/Register/Register";
+import Dashboard from "@/pages/Dashboard/Dashboard";
+import PropertiesList from "@/pages/PropertiesList/PropertiesList";
+import PropertyCreate from "@/pages/PropertyCreate/PropertyCreate";
+import PropertyDetail from "@/pages/PropertyDetail/PropertyDetail";
+import PropertyEdit from "@/pages/PropertyEdit/PropertyEdit";
+import ForgotPassword from "@/pages/ForgotPassword/ForgotPassword";
+import ResetPassword from "@/pages/ResetPassword/ResetPassword";
 
 export default function App() {
   return (

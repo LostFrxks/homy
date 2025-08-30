@@ -1,5 +1,9 @@
 const BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/v1").replace(/\/+$/, "");
-const url = (p: string) => `${BASE}${p}`;
+const url = (p: string) => {
+  const [path, query] = p.split("?");
+  const normalized = path.endsWith("/") ? path : `${path}/`;
+  return `${BASE}${normalized}${query ? `?${query}` : ""}`;
+};
 
 // === helpers ===
 const auth = (): Record<string, string> => {
@@ -16,19 +20,24 @@ async function handleAuth(res: Response) {
   return res;
 }
 
-export async function login(email: string, password: string) {
-  const res = await fetch(url("/auth/login"), {
+export async function login(identity: string, password: string) {
+  const payload = identity.includes("@")
+    ? { email: identity, username: identity, password }
+    : { username: identity, email: identity, password };
+
+  const res = await fetch(url("/auth/login"), {      // url() сам добавит завершающий "/"
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }), // <-- только email
+    body: JSON.stringify(payload),
   });
+
   if (res.status === 401) {
     localStorage.removeItem("access");
     window.location.assign("/login");
     throw new Error("Unauthorized");
   }
   if (!res.ok) throw new Error("Ошибка при логине");
-  return res.json(); // ожидаем { access, refresh }
+  return res.json(); // { access, refresh }
 }
 
 export async function getMe(token: string) {

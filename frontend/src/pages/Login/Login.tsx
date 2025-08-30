@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { login } from "@/lib/api";
+import styles from "./Login.module.css";
 
 type FieldErrors = { identity?: string; password?: string; general?: string };
 
@@ -45,54 +46,22 @@ export default function Login() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "#f3f4f6", // светло-серый фон как на макете
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 16,
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 560,
-          background: "#fff",
-          borderRadius: 14,
-          border: "1px solid #e5e7eb",
-          boxShadow: "0 6px 20px rgba(0,0,0,.06)",
-          padding: 28,
-        }}
-      >
-        <h2 style={{ margin: "0 0 18px 0", fontSize: 22, fontWeight: 600 }}>
-          Вход в аккаунт
-        </h2>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h2 className={`${styles.title} ${styles.title_login}`}>Вход в аккаунт</h2>
 
         {errors.general && (
-          <div
-            role="alert"
-            style={{
-              background: "#fde8e8",
-              color: "#b91c1c",
-              border: "1px solid #fecaca",
-              borderRadius: 10,
-              padding: 10,
-              marginBottom: 14,
-            }}
-          >
+          <div role="alert" className={styles.alert}>
             {errors.general}
           </div>
         )}
 
-        <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <form onSubmit={onSubmit} className={styles.form}>
           {/* Логин / email */}
           <div>
-            <label style={{ display: "block", marginBottom: 6 }}>Ваш логин</label>
             <input
               type="text"
-              placeholder="Логин или email"
+              placeholder="Ваш логин"
               value={identity}
               onChange={(e) => {
                 setIdentity(e.target.value);
@@ -100,17 +69,10 @@ export default function Login() {
               }}
               aria-invalid={!!errors.identity}
               aria-describedby={errors.identity ? "err-identity" : undefined}
-              style={{
-                width: "100%",
-                height: 40,
-                borderRadius: 6,
-                border: `1px solid ${errors.identity ? "#fca5a5" : "#d1d5db"}`,
-                padding: "0 12px",
-                outline: "none",
-              }}
+              className={errors.identity ? styles.inputError : styles.input}
             />
             {errors.identity && (
-              <div id="err-identity" style={{ color: "#b91c1c", fontSize: 13, marginTop: 6 }}>
+              <div id="err-identity" className={styles.errorText}>
                 {errors.identity}
               </div>
             )}
@@ -118,8 +80,7 @@ export default function Login() {
 
           {/* Пароль */}
           <div>
-            <label style={{ display: "block", marginBottom: 6 }}>Пароль</label>
-            <div style={{ display: "flex", gap: 8 }}>
+            <div className={styles.row}>
               <input
                 type={showPwd ? "text" : "password"}
                 placeholder="Пароль"
@@ -130,30 +91,18 @@ export default function Login() {
                 }}
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? "err-password" : undefined}
-                style={{
-                  flex: 1,
-                  height: 40,
-                  borderRadius: 6,
-                  border: `1px solid ${errors.password ? "#fca5a5" : "#d1d5db"}`,
-                  padding: "0 12px",
-                  outline: "none",
-                }}
+                className={errors.password ? styles.inputErrorFlex : styles.inputFlex}
               />
               <button
                 type="button"
                 onClick={() => setShowPwd((s) => !s)}
-                style={{
-                  minWidth: 90,
-                  borderRadius: 6,
-                  border: "1px solid #d1d5db",
-                  background: "#f9fafb",
-                }}
+                className={styles.showBtn}
               >
                 {showPwd ? "Скрыть" : "Показать"}
               </button>
             </div>
             {errors.password && (
-              <div id="err-password" style={{ color: "#b91c1c", fontSize: 13, marginTop: 6 }}>
+              <div id="err-password" className={styles.errorText}>
                 {errors.password}
               </div>
             )}
@@ -163,30 +112,22 @@ export default function Login() {
           <button
             type="submit"
             disabled={!canSubmit}
-            style={{
-              height: 46,
-              borderRadius: 6,
-              border: "none",
-              background: canSubmit ? "#2563eb" : "#cfcfcf", // серый как на макете при disabled
-              color: "#fff",
-              fontSize: 16,
-              cursor: canSubmit ? "pointer" : "not-allowed",
-            }}
+            className={canSubmit ? styles.button : styles.buttonDisabled}
             aria-busy={loading}
           >
             {loading ? "Входим…" : "Войти"}
           </button>
 
           {/* Ссылки */}
-          <div style={{ marginTop: 12, fontSize: 14, textAlign: "center" }}>
-            <Link to="/forgot-password" style={{ color: "blue", textDecoration: "underline" }}>
+          <div className={styles.centerRow}>
+            <Link to="/forgot-password" className={styles.link}>
               Забыли пароль?
             </Link>
           </div>
 
-          <div style={{ textAlign: "center", fontSize: 14 }}>
+          <div className={styles.centerRow}>
             Нет аккаунта?{" "}
-            <Link to="/register" style={{ color: "blue", textDecoration: "underline" }}>
+            <Link to="/register" className={styles.link}>
               Зарегистрироваться
             </Link>
           </div>

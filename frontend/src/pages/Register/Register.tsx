@@ -105,13 +105,32 @@ export default function Register() {
       });
 
       if (!res.ok) {
-        const fe = await parseServerError(res);
-        setErrors(fe);
-        return;
-      }
+      const fe = await parseServerError(res);
+      setErrors(fe);
+      return;
+    }
 
-      // успех
-      nav("/login", { replace: true });
+    // успех регистрации → сразу логинимся
+    const loginRes = await fetch(`${base}/auth/login/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: form.email.trim(),
+        password: form.password,
+      }),
+    });
+
+    if (!loginRes.ok) {
+      setErrors({ general: "Аккаунт создан, но вход не выполнен. Попробуйте войти вручную." });
+      return;
+    }
+
+    const tokens = await loginRes.json();
+    localStorage.setItem("access", tokens.access);
+    localStorage.setItem("refresh", tokens.refresh);
+
+    nav("/dashboard", { replace: true });
+
     } catch {
       setErrors({ general: "Сеть недоступна или сервер не отвечает" });
     } finally {
