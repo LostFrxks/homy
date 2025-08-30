@@ -8,9 +8,13 @@ class PropertyImageInline(admin.TabularInline):
 @admin.register(Property)   
 class PropertyAdmin(admin.ModelAdmin):
     inlines = [PropertyImageInline]
-    list_display = ("id", "title", "deal_type", "status", "price", "rooms", "area", "realtor", "created_at")
+    list_display = (
+        "id", "title", "deal_type", "status", 
+        "price", "rooms", "area", "realtor", "created_at"
+    )
     list_filter = ("deal_type", "status", "district", "realtor")
     search_fields = ("title", "description", "address")
+
 
 @admin.register(PropertyImage)
 class PropertyImageAdmin(admin.ModelAdmin):

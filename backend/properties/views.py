@@ -1,85 +1,59 @@
-from django.db.models import Prefetch
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.filters import SearchFilter, OrderingFilter
-from django_filters import rest_framework as filters
-from .permissions import IsOwnerOrReadOnly
+from django_filters import rest_framework as dj_filters
 from django.shortcuts import get_object_or_404
+
 from .models import Property, PropertyImage
 from .serializers import PropertySerializer, PropertyImageSerializer
+from .permissions import IsOwnerOrReadOnly  
 
-class PropertyFilter(filters.FilterSet):
-    price_min = filters.NumberFilter(field_name="price", lookup_expr="gte")
-    price_max = filters.NumberFilter(field_name="price", lookup_expr="lte")
-    area_min  = filters.NumberFilter(field_name="area",  lookup_expr="gte")
-    area_max  = filters.NumberFilter(field_name="area",  lookup_expr="lte")
+class PropertyFilter(dj_filters.FilterSet):
     class Meta:
         model = Property
-        fields = ["deal_type", "status", "district", "rooms"]
+        fields = ["status", "district", "rooms", "deal_type", "realtor"]
 
 class PropertyViewSet(viewsets.ModelViewSet):
-    queryset = (
-        Property.objects.all()
-        .select_related("realtor")
-        .prefetch_related(Prefetch("images", queryset=PropertyImage.objects.order_by("-created_at")))
-        .order_by("-created_at")
-    )
-
+    queryset = Property.objects.all().select_related("realtor").prefetch_related("images")
     serializer_class = PropertySerializer
-    permission_classes = [IsOwnerOrReadOnly]
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrReadOnly]
+    filter_backends = [dj_filters.DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_class = PropertyFilter
+    search_fields = ["title", "address", "district", "description"]
+    ordering_fields = ["created_at", "price", "area", "rooms"]
+    ordering = ["-created_at"]
 
-    filter_backends   = [filters.DjangoFilterBackend, SearchFilter, OrderingFilter]
-    filterset_class   = PropertyFilter
-    search_fields     = ["title", "description", "address", "district"]
-    ordering_fields   = ["created_at", "price", "area", "rooms"]
-    ordering          = ["-created_at"]
-
-    def perform_create(self, serializer):
-        serializer.save(realtor=self.request.user)
-
-    @action(detail=True, methods=["get"], url_path="images")
-    def list_images(self, request, pk=None):
-        """Список изображений объекта."""
+    @action(detail=True, methods=["post"])
+    def upload_image(self, request, pk=None):
         prop = self.get_object()
-        imgs = prop.images.all().order_by("-created_at")
-        return Response(PropertyImageSerializer(imgs, many=True, context={"request": request}).data)
+        if prop.images.count() >= 20:
+            return Response({"detail": "Max 20 images per property"}, status=400)
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"detail": "file is required"}, status=400)
+        img = PropertyImage.objects.create(property=prop, image=file)
+        return Response(PropertyImageSerializer(img).data, status=201)
 
-    @action(detail=True, methods=["post"], url_path="images", permission_classes=[IsAuthenticated, IsOwnerOrReadOnly])
-    def upload_images(self, request, pk=None):
-        """Загрузка одного или нескольких изображений (multipart/form-data). Поле: image или images."""
-        prop = self.get_object()
-        if prop.realtor != request.user:
-            return Response({"detail": "You are not the owner."}, status=status.HTTP_403_FORBIDDEN)
-
-        files = request.FILES.getlist("images") or request.FILES.getlist("image")
-        if not files:
-            return Response({"detail": "No files provided. Use 'images' or 'image' fields."}, status=status.HTTP_400_BAD_REQUEST)
-
-        # простая валидация
-        for f in files:
-            if f.content_type not in ["image/jpeg", "image/png", "image/webp"]:
-                return Response({"detail": "Only jpeg/png/webp allowed."}, status=status.HTTP_400_BAD_REQUEST)
-            if f.size > 10 * 1024 * 1024:  # 10 MB
-                return Response({"detail": "Max file size is 10MB."}, status=status.HTTP_400_BAD_REQUEST)
-
-        created = [PropertyImage.objects.create(property=prop, image=f) for f in files]
-        data = PropertyImageSerializer(created, many=True, context={"request": request}).data
-        return Response(data, status=status.HTTP_201_CREATED)
-
-    @action(detail=True, methods=["delete"], url_path=r"images/(?P<image_id>\d+)", permission_classes=[IsAuthenticated, IsOwnerOrReadOnly])
+    @action(detail=True, methods=["delete"], url_path=r"images/(?P<image_id>\d+)")
     def delete_image(self, request, pk=None, image_id=None):
-        """Удаление конкретного изображения по id (только владелец)."""
         prop = self.get_object()
-        if prop.realtor != request.user:
-            return Response({"detail": "You are not the owner."}, status=status.HTTP_403_FORBIDDEN)
-
-        img = get_object_or_404(PropertyImage, id=image_id, property=prop)
-        img.delete()  # файл удалится благодаря переопределённому delete() в модели
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        img = get_object_or_404(prop.images, pk=image_id)
+        img.image.delete(save=False)
+        img.delete()
+        return Response(status=204)
     
     def get_serializer_context(self):
         ctx = super().get_serializer_context()
         ctx["request"] = self.request
         return ctx
+    
+    def get_queryset(self):
+        qs = super().get_queryset()
+        u = self.request.user
+        # Админ видит всё; остальные — свои
+        if u.is_staff:
+            return qs
+        return qs.filter(realtor=u)
+
+    def perform_create(self, serializer):
+        serializer.save(realtor=self.request.user)

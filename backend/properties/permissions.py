@@ -1,26 +1,30 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
-from rest_framework.exceptions import PermissionDenied, NotAuthenticated
 
 class IsOwnerOrReadOnly(BasePermission):
     """
-    SAFE-методы: как у тебя сейчас — только для аутентифицированных.
-    Небезопасные методы: только владелец.
-    Возвращаем понятные сообщения об ошибках.
+    Чтение (GET/HEAD/OPTIONS): разрешено для аутентифицированных.
+    Запись (POST/PUT/PATCH/DELETE): только владелец (owner/created_by/realtor) или staff.
     """
+    message = "Вы не владелец объекта."
 
-    message = "Вы не владелец объекта"
+    def has_permission(self, request, view):
+        # У тебя уже стоит IsAuthenticated на ViewSet — просто пропускаем дальше.
+        return True
 
     def has_object_permission(self, request, view, obj):
-        # SAFE: оставить как у тебя (чтение только для залогиненных)
+        # Разрешаем чтение
         if request.method in SAFE_METHODS:
-            return request.user and request.user.is_authenticated
+            return True
 
-        # Write-операции: сначала проверяем, что юзер залогинен
-        if not request.user or not request.user.is_authenticated:
-            raise NotAuthenticated(detail="Требуется аутентификация")
+        # STAFF может всё
+        if getattr(request.user, "is_staff", False):
+            return True
 
-        # Только владелец может править/удалять
-        if getattr(obj, "realtor_id", None) != request.user.id:
-            raise PermissionDenied(detail=self.message)
+        # Определяем владельца: поддержка разных моделей
+        owner = (
+            getattr(obj, "realtor", None)
+            or getattr(obj, "created_by", None)
+            or getattr(obj, "realtor", None)
+        )
 
-        return True
+        return bool(owner and owner == request.user)

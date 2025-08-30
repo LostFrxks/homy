@@ -3,7 +3,7 @@ from rest_framework import serializers
 from .models import Property, PropertyImage
 
 class PropertyImageSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField(read_only=True)
+    realtor  = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = PropertyImage
