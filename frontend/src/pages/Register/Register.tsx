@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import styles from "./Register.module.css";
 
 type FieldErrors = {
   name?: string;
@@ -144,191 +145,176 @@ export default function Register() {
   const strengthBg = ["#fee2e2", "#fecaca", "#fde68a", "#bbf7d0", "#86efac"][pwdStrength] || "#fee2e2";
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#f5f7fb",
-        padding: 16,
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 460,
-          background: "#fff",
-          border: "1px solid #e5e7eb",
-          borderRadius: 12,
-          padding: 20,
-          boxShadow: "0 6px 18px rgba(0,0,0,0.05)",
-        }}
-      >
-        <h2 style={{ margin: 0, marginBottom: 8 }}>Создать аккаунт</h2>
-        <p style={{ marginTop: 0, color: "#555" }}>
-          Зарегистрируйтесь как риелтор, чтобы публиковать объекты
-        </p>
+    <div className={styles.container}>
+    <div className={styles.card}>
+      <h2 className={`${styles.title} ${styles.title_login}`}>
+        Создать аккаунт
+      </h2>
+      <p className={styles.subtitle}>
+        Зарегистрируйтесь как риелтор, чтобы публиковать объекты
+      </p>
 
-        {errors.general && (
-          <div
-            role="alert"
-            style={{
-              background: "#fde8e8",
-              color: "#b91c1c",
-              padding: 10,
-              borderRadius: 8,
-              marginBottom: 12,
-              border: "1px solid #fecaca",
-            }}
-          >
-            {errors.general}
-          </div>
-        )}
+      {errors.general && (
+        <div role="alert" className={styles.alert}>
+          {errors.general}
+        </div>
+      )}
 
-        <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div>
-            <label>Имя / компания</label>
-            <input
-              type="text"
-              value={form.name}
-              onChange={(e) => setField("name", e.target.value)}
-              placeholder="Например, Иван Петров"
-              required
-              style={{ width: "100%" }}
-              aria-invalid={!!errors.name}
-              aria-describedby={errors.name ? "error-name" : undefined}
-            />
-            {errors.name && (
-              <div id="error-name" style={{ color: "#b91c1c", fontSize: 13, marginTop: 4 }}>
-                {errors.name}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label>Email (будет логином)</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(e) => setField("email", e.target.value)}
-              placeholder="you@example.com"
-              required
-              style={{ width: "100%" }}
-              aria-invalid={!!errors.email}
-              aria-describedby={errors.email ? "error-email" : undefined}
-            />
-            {errors.email && (
-              <div id="error-email" style={{ color: "#b91c1c", fontSize: 13, marginTop: 4 }}>
-                {errors.email}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label>Пароль</label>
-            <div style={{ display: "flex", gap: 8 }}>
-              <input
-                type={showPwd ? "text" : "password"}
-                value={form.password}
-                onChange={(e) => setField("password", e.target.value)}
-                required
-                style={{ flex: 1 }}
-                aria-invalid={!!errors.password}
-                aria-describedby={
-                  errors.password ? "error-password" : "hint-password"
-                }
-              />
-              <button
-                type="button"
-                onClick={() => setShowPwd((s) => !s)}
-                style={{ padding: "6px 10px" }}
-              >
-                {showPwd ? "Скрыть" : "Показать"}
-              </button>
-            </div>
-
-            {/* Индикатор силы пароля */}
-            <div style={{ marginTop: 8 }}>
-              <div style={{ height: 6, background: "#f3f4f6", borderRadius: 999 }}>
-                <div
-                  style={{
-                    height: 6,
-                    width: strengthWidth,
-                    background: strengthBg,
-                    borderRadius: 999,
-                    transition: "width .2s ease",
-                  }}
-                />
-              </div>
-              <div id="hint-password" style={{ fontSize: 12, color: "#6b7280", marginTop: 6 }}>
-                Надёжность: {strengthLabel}
-              </div>
-
-              {/* Чек-лист ограничений */}
-              <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: 12, color: "#374151" }}>
-                <li style={{ color: form.password.length >= 6 ? "#16a34a" : "#b91c1c" }}>
-                  Длина не менее 6 символов
-                </li>
-                <li style={{ color: !isNumericOnly(form.password) ? "#16a34a" : "#b91c1c" }}>
-                  Не только цифры
-                </li>
-                {/* Если сервер вернул "too common", подсветим */}
-                {errors.passwordCommon && (
-                  <li style={{ color: "#b91c1c" }}>
-                    Слишком распространённый пароль — выберите другой
-                  </li>
-                )}
-              </ul>
-            </div>
-
-            {errors.password && (
-              <div id="error-password" style={{ color: "#b91c1c", fontSize: 13, marginTop: 6 }}>
-                {errors.password}
-              </div>
-            )}
-          </div>
-
-          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <input
-              type="checkbox"
-              checked={form.agree}
-              onChange={(e) => setField("agree", e.target.checked)}
-              aria-invalid={!!errors.agree}
-              aria-describedby={errors.agree ? "error-agree" : undefined}
-            />
-            <span>Соглашаюсь с условиями сервиса</span>
-          </label>
-          {errors.agree && (
-            <div id="error-agree" style={{ color: "#b91c1c", fontSize: 13, marginTop: -8 }}>
-              {errors.agree}
+      <form onSubmit={onSubmit} className={styles.form}>
+        {/* Имя / компания */}
+        <div>
+          <input
+            type="text"
+            value={form.name}
+            onChange={(e) => setField("name", e.target.value)}
+            placeholder="Например, Иван Петров"
+            required
+            className={errors.name ? styles.inputError : styles.input}
+            aria-invalid={!!errors.name}
+            aria-describedby={errors.name ? "error-name" : undefined}
+          />
+          {errors.name && (
+            <div id="error-name" className={styles.errorText}>
+              {errors.name}
             </div>
           )}
+        </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: "10px 16px",
-              background: loading ? "#93c5fd" : "blue",
-              color: "white",
-              borderRadius: 8,
-              border: "none",
-              cursor: loading ? "not-allowed" : "pointer",
-            }}
-            aria-busy={loading}
-          >
-            {loading ? "Создаю…" : "Зарегистрироваться"}
-          </button>
+        {/* Email */}
+        <div>
+          <input
+            type="email"
+            value={form.email}
+            onChange={(e) => setField("email", e.target.value)}
+            placeholder="you@example.com"
+            required
+            className={errors.email ? styles.inputError : styles.input}
+            aria-invalid={!!errors.email}
+            aria-describedby={errors.email ? "error-email" : undefined}
+          />
+          {errors.email && (
+            <div id="error-email" className={styles.errorText}>
+              {errors.email}
+            </div>
+          )}
+        </div>
 
-          <div style={{ textAlign: "center", fontSize: 14 }}>
-            Уже есть аккаунт?{" "}
-            <Link to="/login" style={{ color: "blue", textDecoration: "underline" }}>
-              Войти
-            </Link>
+        {/* Пароль + глаз */}
+        <div>
+          <div className={styles.passwordWrap}>
+            <input
+              type={showPwd ? "text" : "password"}
+              value={form.password}
+              onChange={(e) => setField("password", e.target.value)}
+              required
+              className={`${errors.password ? styles.inputError : styles.input} ${styles.hasToggle}`}
+              aria-invalid={!!errors.password}
+              aria-describedby={
+                errors.password ? "error-password" : "hint-password"
+              }
+              placeholder="Пароль"
+            />
+
+            <button
+              type="button"
+              onClick={() => setShowPwd((s) => !s)}
+              className={styles.toggle}
+              aria-label={showPwd ? "Скрыть пароль" : "Показать пароль"}
+              aria-pressed={showPwd}
+            >
+              {showPwd ? (
+                <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              ) : (
+                <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                  strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 5.06-5.94" />
+                  <path d="M1 1l22 22" />
+                  <path d="M9.88 9.88A3 3 0 0 0 12 15a3 3 0 0 0 2.12-.88" />
+                </svg>
+              )}
+            </button>
           </div>
-        </form>
-      </div>
+
+          {/* Индикатор силы пароля */}
+          <div className={styles.strengthWrap}>
+            <div className={styles.strengthTrack}>
+              <div
+                className={styles.strengthFill}
+                style={{ width: strengthWidth, background: strengthBg }}
+              />
+            </div>
+            <div id="hint-password" className={styles.hint}>
+              Надёжность: {strengthLabel}
+            </div>
+
+            <ul className={styles.checklist}>
+              <li
+                className={
+                  form.password.length >= 6 ? styles.good : styles.bad
+                }
+              >
+                Длина не менее 6 символов
+              </li>
+              <li
+                className={
+                  !isNumericOnly(form.password) ? styles.good : styles.bad
+                }
+              >
+                Не только цифры
+              </li>
+              {errors.passwordCommon && (
+                <li className={styles.bad}>
+                  Слишком распространённый пароль — выберите другой
+                </li>
+              )}
+            </ul>
+          </div>
+
+          {errors.password && (
+            <div id="error-password" className={styles.errorText}>
+              {errors.password}
+            </div>
+          )}
+        </div>
+
+        {/* Согласие */}
+        <label className={styles.checkboxRow} htmlFor="agree">
+          <input
+            id="agree"
+            type="checkbox"
+            checked={form.agree}
+            onChange={(e) => setField("agree", e.target.checked)}
+          />
+          <span className={styles.acceptance}>Соглашаюсь с условиями сервиса</span>
+        </label>
+        {errors.agree && (
+          <div id="error-agree" className={styles.errorText}>
+            {errors.agree}
+          </div>
+        )}
+        
+        {/* Кнопка */}
+        <button
+          type="submit"
+          disabled={loading}
+          className={loading ? styles.buttonDisabled : styles.button}
+          aria-busy={loading}
+        >
+          {loading ? "Создаю…" : "Зарегистрироваться"}
+        </button>
+
+        <div className={styles.centerRow}>
+          Уже есть аккаунт?{" "}
+          <Link to="/login" className={styles.link}>
+            Войти
+          </Link>
+        </div>
+      </form>
     </div>
+  </div>
   );
 }

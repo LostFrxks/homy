@@ -39,7 +39,7 @@ export default function Login() {
       if (data.refresh) localStorage.setItem("refresh", data.refresh);
       nav(from, { replace: true });
     } catch {
-      setErrors({ general: "Неверные учётные данные или сервер недоступен" });
+      setErrors({ general: "Неверные учётные данные" });
     } finally {
       setLoading(false);
     }
@@ -80,7 +80,7 @@ export default function Login() {
 
           {/* Пароль */}
           <div>
-            <div className={styles.row}>
+            <div className={styles.passwordWrap}>
               <input
                 type={showPwd ? "text" : "password"}
                 placeholder="Пароль"
@@ -91,16 +91,36 @@ export default function Login() {
                 }}
                 aria-invalid={!!errors.password}
                 aria-describedby={errors.password ? "err-password" : undefined}
-                className={errors.password ? styles.inputErrorFlex : styles.inputFlex}
+                className={`${errors.password ? styles.inputError : styles.input} ${styles.hasToggle}`}
               />
+
               <button
                 type="button"
                 onClick={() => setShowPwd((s) => !s)}
-                className={styles.showBtn}
+                className={styles.toggle}
+                aria-label={showPwd ? "Скрыть пароль" : "Показать пароль"}
+                aria-pressed={showPwd}
               >
-                {showPwd ? "Скрыть" : "Показать"}
+                {/* иконка-глаз */}
+                {showPwd ? (
+                  /* открытый глаз */
+                  <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                ) : (
+                  /* закрытый глаз (перечёркнутый) */
+                  <svg className={styles.icon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                      strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.94 10.94 0 0 1 12 19c-7 0-11-7-11-7a20.3 20.3 0 0 1 5.06-5.94" />
+                    <path d="M1 1l22 22" />
+                    <path d="M9.88 9.88A3 3 0 0 0 12 15a3 3 0 0 0 2.12-.88" />
+                  </svg>
+                )}
               </button>
             </div>
+
             {errors.password && (
               <div id="err-password" className={styles.errorText}>
                 {errors.password}
@@ -126,7 +146,6 @@ export default function Login() {
           </div>
 
           <div className={styles.centerRow}>
-            Нет аккаунта?{" "}
             <Link to="/register" className={styles.link}>
               Зарегистрироваться
             </Link>

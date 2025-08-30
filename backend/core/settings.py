@@ -30,7 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me")
 DEBUG = os.getenv("DEBUG", "True") == "True"
-ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "").split(",") if not DEBUG else ["*"]
+ALLOWED_HOSTS = ["192.168.0.103", "localhost"]
 
 
 # Application definition
@@ -63,7 +63,10 @@ MIDDLEWARE = [
     'audit.middleware.RequestMiddleware', 
 ]
 
-CORS_ALLOWED_ORIGINS = [o for o in os.getenv("CORS_ALLOWED_ORIGINS","").split(",") if o]
+CORS_ALLOWED_ORIGINS = [
+    "http://192.168.0.103:3000",
+    "http://localhost:3000",
+]
 
 ROOT_URLCONF = 'core.urls'
 

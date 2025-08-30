@@ -1,28 +1,32 @@
-.body, html, #root {
+
+body, html, #root {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
   font-family: 'Inter', sans-serif;
-  background-color: white;
 }
+
 .container {
-  min-height: 100vh;
-  background: #f3f4f6; /* светло-серый фон как на макете */
+  width: 100vw;
+  height: 100vh;
+   /* светло-серый фон как на макете */
+  background: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px;
   font-family: 'Inter', sans-serif;
 }
 
 .card {
-  width: 100%;
-  max-width: 560px;
   background: #fff;
   border-radius: 10px;
   border: 1px solid #e5e7eb;
   box-shadow: 0 6px 20px rgba(0,0,0,.06);
-  padding: 28px;
+  padding: 30px;
+  gap: 15px;
+  display: flex;
+  flex-direction: column;
+  width: 70%;
 }
 
 .title {
@@ -34,6 +38,7 @@
 .title_login {
   text-align: left;
   color: black;
+  margin: 0;
 }  
 
 .alert {
@@ -41,13 +46,15 @@
   color: #b91c1c;
   border: 1px solid #fecaca;
   border-radius: 10px;
-  padding: 10px;
+  padding: 12px;
+  width: calc(100% - 20px - 2px);
+  font-size: 15px;
 }
 
 .form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 15px;
 }
 
 .label {
@@ -61,14 +68,15 @@
   padding: 0 12px;
   outline: none;
   background-color: white;
+  border-radius: 8px;
+  color: black;
 }
 
 .inputError {
   width: 100%;
   height: 40px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #fca5a5;
-  padding: 0 12px;
   outline: none;
 }
 
@@ -80,11 +88,11 @@
 .inputFlex {
   flex: 1;
   height: 40px;
-  border-radius: 6px;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d3d3d3;
   padding: 0 12px;
   outline: none;
   background-color: white;
+  border-radius: 8px;
 }
 
 .inputErrorFlex {
@@ -109,23 +117,77 @@
 }
 
 .button {
-  height: 46px;
-  border-radius: 6px;
+  height: 42px;
   border: none;
   background: #2563eb;
   color: #fff;
   font-size: 16px;
   cursor: pointer;
+  transition: all 0.3s ease;
+  border-radius: 8px;
 }
 
 .buttonDisabled {
-  height: 46px;
-  border-radius: 6px;
+  height: 42px;
   border: none;
   background: #cfcfcf; /* серый как на макете при disabled */
   color: #fff;
   font-size: 16px;
   cursor: not-allowed;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+/* Обёртка для позиции иконки */
+.passwordWrap {
+  position: relative;
+
+}
+
+/* Кнопка-глаз внутри инпута */
+.toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+
+  /* жёсткий ресет */
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+
+  padding: 0;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+/* убираем любые фокусы/активы */
+.toggle:focus,
+.toggle:focus-visible,
+.toggle:active {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* ховер можно оставить */
+.toggle:hover {
+  color: #374151;
+}
+
+/* иконка */
+.icon {
+  width: 20px;
+  height: 20px;
 }
 
 .centerRow {
@@ -134,7 +196,54 @@
 }
 
 .link {
-  color: blue;
+  color: #282828;
   text-decoration: underline;
-  text-align: center;
+  transition: all 0.3s ease;
 }
+.link:hover {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 500px) {
+    .input{
+        font-size: 15px;
+        padding: 2px 10px;
+    }
+
+    .form{
+        gap: 12px;
+    }
+}
+
+@media(max-width: 350px) {
+    .card {
+        width: 74%;
+        padding: 28px;
+    }
+}
+
+@media(max-width: 330px) {
+    .title_login{
+        font-size: 20px;
+    }
+    .card {
+        gap: 12px;
+    }
+    .form {
+        gap: 12px;
+    }
+    .input, .inputError, .inputFlex, .inputErrorFlex, .button, .buttonDisabled {
+        height: 38px;
+    }
+
+    .link {
+        font-size: 13px;
+    }
+
+    .container {
+        padding: 8px;
+    }
+}
+
