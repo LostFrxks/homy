@@ -48,27 +48,70 @@ class User(AbstractUser):
 
 class PasswordResetCode(models.Model):
     user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="reset_codes")
+    password_hash = models.CharField(max_length=256, blank=True)  # хэш нового пароля
     code = models.CharField(max_length=6)
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     used = models.BooleanField(default=False)
-    
+
     @staticmethod
     def generate_code():
+        import secrets
         return f"{secrets.randbelow(10**6):06d}"
-    
+
     def is_valid(self):
+        from django.utils import timezone
         return (not self.used) and timezone.now() <= self.expires_at
-    
+
     def save(self, *args, **kwargs):
+        from django.utils import timezone
         if not self.expires_at:
             self.expires_at = timezone.now() + timezone.timedelta(minutes=10)
         super().save(*args, **kwargs)
-    
-    def __str__(self):
-        return f"Reset code for {self.user.email}: {self.code}"
-    
+
+class EmailLoginCode(models.Model):
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE, related_name="login_codes")
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+
+    @staticmethod
+    def generate_code():
+        import secrets
+        return f"{secrets.randbelow(10**6):06d}"
+
+    def is_valid(self):
+        from django.utils import timezone
+        return (not self.used) and timezone.now() <= self.expires_at
+
+
+from django.contrib.auth.hashers import make_password
+
+class RegistrationCode(models.Model):
+    email = models.EmailField()                       # будущий email пользователя
+    name = models.CharField(max_length=150)           # будущий username/first_name
+    password_hash = models.CharField(max_length=256)  # ХРАНИМ ТОЛЬКО ХЕШ!
+    code = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    used = models.BooleanField(default=False)
+    attempts = models.PositiveIntegerField(default=0)
+
     class Meta:
         indexes = [
-            models.Index(fields=["user", "created_at"]),
+            models.Index(fields=["email", "-created_at"]),
         ]
+
+    @staticmethod
+    def create(email: str, name: str, raw_password: str, code: str, ttl_minutes: int = 10):
+        return RegistrationCode.objects.create(
+            email=email,
+            name=name,
+            password_hash=make_password(raw_password),
+            code=code,
+            expires_at=timezone.now() + timezone.timedelta(minutes=ttl_minutes),
+        )
+
+    def is_valid(self) -> bool:
+        return (not self.used) and timezone.now() <= self.expires_at

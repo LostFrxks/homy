@@ -1,23 +1,36 @@
 // src/pages/ForgotPassword.tsx
-import { useState } from "react";
+import React, { useState } from "react";
 import { requestPasswordCode } from "@/lib/api";
 
-export default function ForgotPassword() {
-  const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+function getErrorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (typeof err === "string") return err;
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return "Ошибка";
+  }
+}
 
-  async function submit(e: React.FormEvent) {
+export default function ForgotPassword() {
+  const [email, setEmail] = useState<string>("");
+  const [sent, setSent] = useState<boolean>(false);
+  const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(false);
+
+  async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setErr(null);
-    if (!email.trim()) return setErr("Укажите email");
+    if (!email.trim()) {
+      setErr("Укажите email");
+      return;
+    }
     try {
       setLoading(true);
       await requestPasswordCode(email.trim());
       setSent(true);
-    } catch (e: any) {
-      setErr(e?.message || "Ошибка");
+    } catch (err: unknown) {
+      setErr(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -38,7 +51,7 @@ export default function ForgotPassword() {
             type="email"
             placeholder="Ваш email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
           />
           <button disabled={loading}>{loading ? "Отправляем…" : "Отправить код"}</button>
         </form>

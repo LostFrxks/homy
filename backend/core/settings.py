@@ -179,8 +179,14 @@ REST_FRAMEWORK = {
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
-EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "no-reply@homy.local"
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "murem799@gmail.com"          # ← твой Gmail
+EMAIL_HOST_PASSWORD = "wdkyshqpdadpyobt"          # ← 16-символьный App Password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER       
 
 
 SIMPLE_JWT = {
