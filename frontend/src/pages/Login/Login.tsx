@@ -135,7 +135,14 @@ export default function Login() {
             className={canSubmit ? styles.button : styles.buttonDisabled}
             aria-busy={loading}
           >
-            {loading ? "Входим…" : "Войти"}
+            {loading ? (
+              <span className={styles.buttonContent}>
+                <span className={styles.spinner} aria-hidden />
+                Входим…
+              </span>
+            ) : (
+              "Войти"
+            )}
           </button>
 
           {/* Ссылки */}

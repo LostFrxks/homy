@@ -95,20 +95,22 @@ class ResetPasswordView(APIView):
         s.save()
         return Response({"ok": True, "detail": "Пароль изменён"}, status=status.HTTP_200_OK)
 
-# НОВОЕ: без авторизации
 class ForgotPasswordNoAuthView(APIView):
     permission_classes = [permissions.AllowAny]
+    authentication_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "password_forgot"
+
     def post(self, request):
         s = ForgotPasswordNoAuthSerializer(data=request.data)
         s.is_valid(raise_exception=True)
         res = s.save()
-        rec = res["record"]; raw_pwd = res["raw_password"]; user = res["user"]
+        rec = res["record"]; user = res["user"]
+
         send_mail(
             "Сброс пароля — код подтверждения",
-            (f"Код: {rec.code}\nДействует: 10 минут.\n\n"
-             f"Новый пароль: {raw_pwd}\nПароль применится после ввода кода."),
+            f"Код: {rec.code}\nДействует: 10 минут.\n"
+            f"Если это были не вы — просто игнорируйте письмо.",
             getattr(settings, "DEFAULT_FROM_EMAIL", None),
             [user.email], fail_silently=False
         )
@@ -116,6 +118,7 @@ class ForgotPasswordNoAuthView(APIView):
 
 class ResetPasswordNoAuthView(APIView):
     permission_classes = [permissions.AllowAny]
+    authentication_classes = [] 
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "password_reset"
     def post(self, request):

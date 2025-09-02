@@ -1,12 +1,13 @@
+// src/pages/EmailVerifyPage.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { verifyRegisterCode, resendRegisterCode } from "@/lib/api";
+import styles from "./EmailVerifyPage.module.css";
 
 function useQuery() {
   const { search } = useLocation();
   return useMemo(() => new URLSearchParams(search), [search]);
 }
-
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === "string") return err;
@@ -16,6 +17,7 @@ function getErrorMessage(err: unknown): string {
 export default function EmailVerifyPage() {
   const q = useQuery();
   const navigate = useNavigate();
+
   const emailParam = q.get("email") || "";
   const [email, setEmail] = useState(emailParam);
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
@@ -25,10 +27,7 @@ export default function EmailVerifyPage() {
   const [info, setInfo] = useState<string | null>(email ? `Мы отправили код на ${email}` : null);
   const [cooldown, setCooldown] = useState(60);
 
-  useEffect(() => {
-    inputsRef.current[0]?.focus();
-  }, []);
-
+  useEffect(() => { inputsRef.current[0]?.focus(); }, []);
   useEffect(() => {
     const t = setInterval(() => setCooldown((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
@@ -118,18 +117,16 @@ export default function EmailVerifyPage() {
   };
 
   return (
-    <div className="min-h-[60vh] flex items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-2xl shadow-lg p-6 bg-white dark:bg-neutral-900">
-        <h1 className="text-2xl font-semibold mb-2">Подтверждение почты</h1>
-        <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-4">
-          Введите 6-значный код, отправленный на вашу почту.
-        </p>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h1 className={`${styles.title} ${styles.title_login}`}>Подтверждение почты</h1>
+        <p className={styles.subtitle}>Введите 6-значный код, отправленный на вашу почту.</p>
 
         {!emailParam && (
-          <div className="mb-4">
-            <label className="block text-sm mb-1">Email</label>
+          <div className={styles.field}>
+            <label className={styles.label}>Email</label>
             <input
-              className="w-full rounded-xl border px-3 py-2 outline-none focus:ring"
+              className={styles.input}
               type="email"
               placeholder="you@example.com"
               value={email}
@@ -140,13 +137,12 @@ export default function EmailVerifyPage() {
         )}
 
         <form onSubmit={submit}>
-          <div className="flex items-center justify-between gap-2 mb-4">
+          <div className={styles.codeGrid}>
             {Array.from({ length: 6 }).map((_, i) => (
               <input
                 key={i}
-                // ВАЖНО: callback-ref ничего не возвращает (void)
-                ref={(el: HTMLInputElement | null) => { inputsRef.current[i] = el; }}
-                className="w-12 h-12 text-center text-xl rounded-xl border outline-none focus:ring"
+                ref={(el) => { inputsRef.current[i] = el; }}
+                className={styles.codeInput}
                 inputMode="numeric"
                 pattern="\d*"
                 maxLength={1}
@@ -158,35 +154,35 @@ export default function EmailVerifyPage() {
             ))}
           </div>
 
-          {error && <div className="text-sm text-red-600 mb-2">{error}</div>}
-          {info && <div className="text-sm text-emerald-600 mb-2">{info}</div>}
+          {error && <div className={styles.alertError}>{error}</div>}
+          {info && <div className={styles.alertInfo}>{info}</div>}
 
           <button
             type="submit"
             disabled={!canSubmit}
-            className="w-full rounded-xl py-2.5 font-medium bg-black text-white disabled:opacity-40"
+            className={canSubmit ? styles.button : styles.buttonDisabled}
           >
             {submitting ? "Проверяем..." : "Подтвердить"}
           </button>
         </form>
 
-        <div className="mt-4 text-sm flex items-center justify-between">
+        <div className={styles.resendRow}>
           <button
             type="button"
             onClick={resend}
             disabled={!email || cooldown > 0}
-            className="underline disabled:no-underline disabled:opacity-50"
+            className={styles.link}
           >
             Отправить код снова
           </button>
-          <span className="text-neutral-600 dark:text-neutral-400">
+          <span className={styles.cooldownText}>
             {cooldown > 0 ? `Повторно через ${cooldown}s` : "Можно отправить снова"}
           </span>
         </div>
 
-        <div className="mt-4 text-xs text-neutral-500">
+        <div className={styles.footerNote}>
           Указали не тот email?{" "}
-          <button className="underline" onClick={() => navigate(-1)}>
+          <button className={styles.link} onClick={() => navigate(-1)}>
             Вернуться
           </button>
         </div>

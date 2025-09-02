@@ -30,7 +30,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "change-me")
 DEBUG = os.getenv("DEBUG", "True") == "True"
-ALLOWED_HOSTS = ["192.168.0.103", "localhost"]
+ALLOWED_HOSTS = ["192.168.0.103", "localhost", "127.0.0.1"]
+CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://192.168.0.103:3000"]
 
 
 # Application definition

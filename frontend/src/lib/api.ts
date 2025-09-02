@@ -1,4 +1,4 @@
-const BASE = (import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/v1").replace(/\/+$/, "");
+const BASE = (import.meta.env.VITE_API_URL || "/api/v1").replace(/\/+$/, "");
 const url = (p: string) => {
   const [path, query] = p.split("?");
   const normalized = path.endsWith("/") ? path : `${path}/`;
@@ -247,7 +247,11 @@ export async function requestPasswordCode(email: string) {
   return res.json(); // { ok: true }
 }
 
-export async function resetPassword(email: string, code: string, new_password: string) {
+export async function resetPasswordWithCode(
+  email: string,
+  code: string,
+  new_password: string
+) {
   const res = await fetch(url("/auth/password/reset"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -256,7 +260,6 @@ export async function resetPassword(email: string, code: string, new_password: s
   if (!res.ok) throw new Error(await res.text());
   return res.json(); // { ok: true }
 }
-
 
 // src/lib/api.ts
 export async function verifyRegisterCode(payload: { email: string; code: string }) {

@@ -12,7 +12,7 @@ import PropertyDetail from "@/pages/PropertyDetail/PropertyDetail";
 import PropertyEdit from "@/pages/PropertyEdit/PropertyEdit";
 import ForgotPassword from "@/pages/ForgotPassword/ForgotPassword";
 import ResetPassword from "@/pages/ResetPassword/ResetPassword";
-import EmailVerifyPage from "@/pages/EmailVerifyPage";
+import EmailVerifyPage from "@/pages/EmailVerifyPage/EmailVerifyPage";
 
 export default function App() {
   return (

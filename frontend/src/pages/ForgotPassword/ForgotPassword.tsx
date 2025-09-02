@@ -1,61 +1,102 @@
-// src/pages/ForgotPassword.tsx
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { requestPasswordCode } from "@/lib/api";
+import { useNavigate, Link } from "react-router-dom";
+import styles from "./ForgotPassword.module.css";
+
+type FieldErrors = { email?: string; general?: string };
 
 function getErrorMessage(err: unknown): string {
   if (err instanceof Error) return err.message;
   if (typeof err === "string") return err;
-  try {
-    return JSON.stringify(err);
-  } catch {
-    return "Ошибка";
-  }
+  try { return JSON.stringify(err); } catch { return "Ошибка"; }
 }
 
 export default function ForgotPassword() {
-  const [email, setEmail] = useState<string>("");
-  const [sent, setSent] = useState<boolean>(false);
-  const [err, setErr] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<FieldErrors>({});
+  const navigate = useNavigate();
+
+  const canSubmit = useMemo(
+    () => email.trim().length > 0 && !loading,
+    [email, loading]
+  );
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setErr(null);
+    setErrors({});
     if (!email.trim()) {
-      setErr("Укажите email");
+      setErrors({ email: "Укажите email" });
       return;
     }
+
     try {
       setLoading(true);
       await requestPasswordCode(email.trim());
-      setSent(true);
-    } catch (err: unknown) {
-      setErr(getErrorMessage(err));
+      navigate(`/reset-password?email=${encodeURIComponent(email.trim())}`);
+    } catch (error) {
+      setErrors({ general: getErrorMessage(error) });
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <div style={{ maxWidth: 420, margin: "80px auto" }}>
-      <h2>Восстановление пароля</h2>
-      {sent ? (
-        <div style={{ background: "#ecfeff", padding: 12, borderRadius: 8 }}>
-          Если такой аккаунт существует, мы отправили код на <b>{email}</b>.
-          Проверьте почту и введите код на следующем шаге.
-        </div>
-      ) : (
-        <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {err && <div style={{ color: "#b91c1c" }}>{err}</div>}
-          <input
-            type="email"
-            placeholder="Ваш email"
-            value={email}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-          />
-          <button disabled={loading}>{loading ? "Отправляем…" : "Отправить код"}</button>
+    <div className={styles.container}>
+      <div className={styles.card}>
+        <h2 className={`${styles.title} ${styles.title_login}`}>Восстановление пароля</h2>
+        <p className={styles.subtitle}>Укажите свою почту — мы отправим код подтверждения</p>
+
+        {errors.general && (
+          <div role="alert" className={styles.alert}>
+            {errors.general}
+          </div>
+        )}
+
+        <form onSubmit={submit} className={styles.form}>
+          <div>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (errors.email) setErrors((x) => ({ ...x, email: undefined }));
+              }}
+              aria-invalid={!!errors.email}
+              aria-describedby={errors.email ? "err-email" : undefined}
+              className={errors.email ? styles.inputError : styles.input}
+            />
+            {errors.email && (
+              <div id="err-email" className={styles.errorText}>
+                {errors.email}
+              </div>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            disabled={!canSubmit}
+            className={canSubmit ? styles.button : styles.buttonDisabled}
+            aria-busy={loading}
+          >
+            {loading ? (
+              <span className={styles.buttonContent}>
+                <span className={styles.spinner} aria-hidden />
+                Отправляем…
+              </span>
+            ) : (
+              "Отправить код"
+            )}
+          </button>
+
+          <div className={styles.centerRow}>
+            <Link to="/login" className={styles.link}>
+              Вернуться ко входу
+            </Link>
+          </div>
         </form>
-      )}
+      </div>
     </div>
   );
 }

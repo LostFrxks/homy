@@ -46,7 +46,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         return user
 
 class ForgotPasswordSerializer(serializers.Serializer):
-    new_password = serializers.CharField(write_only=True, min_length=8)
+    new_password = serializers.CharField(write_only=True, min_length=6)
     def validate(self, attrs):
         user = self.context.get("user")
         if not user or not isinstance(user, User):
@@ -93,10 +93,8 @@ class ResetPasswordSerializer(serializers.Serializer):
         rec.save(update_fields=["used"])
         return user
 
-# ---------- НОВОЕ: noauth ----------
 class ForgotPasswordNoAuthSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    new_password = serializers.CharField(write_only=True, min_length=8)
 
     def validate(self, attrs):
         email = attrs["email"].strip().lower()
@@ -104,32 +102,31 @@ class ForgotPasswordNoAuthSerializer(serializers.Serializer):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             raise serializers.ValidationError({"email": "User not found"})
-        validate_password(attrs["new_password"], user=user)
         attrs["user"] = user
         return attrs
 
     def create(self, validated_data):
         user = validated_data["user"]
-        raw_pwd = validated_data["new_password"]
         rec = PasswordResetCode.objects.create(
             user=user,
-            password_hash=make_password(raw_pwd),
             code=PasswordResetCode.generate_code(),
             expires_at=timezone.now() + timedelta(minutes=10),
         )
-        return {"record": rec, "raw_password": raw_pwd, "user": user}
+        return {"record": rec, "user": user}
 
 class ResetPasswordNoAuthSerializer(serializers.Serializer):
     email = serializers.EmailField()
     code = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True, min_length=6)
 
     def validate(self, attrs):
         email = attrs["email"].strip().lower()
-        code = attrs["code"].strip()
+        code  = attrs["code"].strip()
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             raise serializers.ValidationError({"email": "User not found"})
+
         rec = (PasswordResetCode.objects
                .filter(user=user, code=code, used=False)
                .order_by("-created_at").first())
@@ -137,8 +134,10 @@ class ResetPasswordNoAuthSerializer(serializers.Serializer):
             raise serializers.ValidationError({"code": "Invalid code"})
         if not rec.is_valid():
             raise serializers.ValidationError({"code": "Code expired or already used"})
-        if not rec.password_hash:
-            raise serializers.ValidationError({"code": "Draft has no password. Request a new code."})
+
+        # проверим качество нового пароля
+        validate_password(attrs["new_password"], user=user)
+
         attrs["user"] = user
         attrs["rec"]  = rec
         return attrs
@@ -146,8 +145,11 @@ class ResetPasswordNoAuthSerializer(serializers.Serializer):
     def create(self, validated_data):
         user = validated_data["user"]
         rec  = validated_data["rec"]
-        user.password = rec.password_hash
+        new_pwd = validated_data["new_password"]
+
+        user.set_password(new_pwd)
         user.save(update_fields=["password"])
+
         rec.used = True
         rec.save(update_fields=["used"])
         return user

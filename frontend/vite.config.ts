@@ -1,21 +1,23 @@
+// vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import path from "node:path";
 
 export default defineConfig({
   plugins: [react()],
-  resolve: {
-    alias: { "@": path.resolve(__dirname, "./src") },
-  },
+  resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
   server: {
-    host: true,           // = 0.0.0.0 — слушаем все интерфейсы (видно с телефона)
-    port: 3000,           // фиксированный порт
-    strictPort: true,     // не прыгать на другой порт
+    host: true,
+    port: 3000,
+    strictPort: true,
     proxy: {
-      // фронт (http://<твой-IP>:3000) → прокси на локальный Django (http://127.0.0.1:8000)
-      "/api/v1": "http://127.0.0.1:8000",
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+        secure: false,
+      },
     },
-    // Если HMR не коннектится с телефона — раскомментируй и подставь свой IP:
+    // Временно отключи кастомный HMR-хост, чтобы исключить влияние:
     // hmr: { host: "192.168.0.103", port: 3000 },
   },
 });
