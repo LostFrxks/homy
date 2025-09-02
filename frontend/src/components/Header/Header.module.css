@@ -1,0 +1,57 @@
+.header {
+  height: 56px;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+
+.burger {
+  width: 36px; height: 36px;
+  display: grid; place-items: center;
+  background: transparent; border: 0;
+  cursor: pointer;
+}
+.burger span {
+  display: block; width: 18px; height: 2px;
+  background: #111; margin: 3px 0; border-radius: 2px;
+}
+
+.logo {
+  font-weight: 600;
+  font-size: 18px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.right {
+  margin-left: auto;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.iconBtn {
+  width: 32px; height: 32px;
+  display: grid; place-items: center;
+  color: #111; text-decoration: none;
+}
+.avatar {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: #d1d5db;
+  display: inline-block;
+}
+
+.logout {
+  padding: 6px 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+}
+.logout:hover { background: #f9fafb; }

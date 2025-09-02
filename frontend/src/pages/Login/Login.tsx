@@ -8,7 +8,7 @@ type FieldErrors = { identity?: string; password?: string; general?: string };
 export default function Login() {
   const nav = useNavigate();
   const location = useLocation();
-  const from = (location.state as any)?.from || "/";
+  const from = (location.state as any)?.from || "/showings";
 
   const [identity, setIdentity] = useState(""); // логин или email — оба валидны
   const [password, setPassword] = useState("");

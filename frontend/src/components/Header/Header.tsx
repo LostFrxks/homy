@@ -1,26 +1,45 @@
-import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import DrawerMenu from "../DrawerMenu/DrawerMenu";
+import styles from "./Header.module.css";
 
 export default function Header() {
   const nav = useNavigate();
+  const [open, setOpen] = useState(false);
 
   function logout() {
     localStorage.removeItem("access");
-    nav("/login");
+    localStorage.removeItem("refresh");
+    nav("/login", { replace: true });
   }
 
   return (
-    <header style={{
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "10px 16px", borderBottom: "1px solid #eee", marginBottom: 16
-    }}>
-      <nav style={{ display: "flex", gap: 12 }}>
-        <Link to="/" style={{ textDecoration: "none" }}>🏠 Главная</Link>
-        <Link to="/properties" style={{ textDecoration: "none" }}>📋 Объекты</Link>
+    <header className={styles.header}>
+      {/* бургер */}
+      <button
+        className={styles.burger}
+        aria-label="Открыть меню"
+        onClick={() => setOpen(true)}
+      >
+        <span /><span /><span />
+      </button>
+
+      {/* логотип */}
+      <button className={styles.logo} onClick={() => nav("/showings")}>
+        Homy
+      </button>
+
+      {/* actions справа */}
+      <nav className={styles.right}>
+        <NavLink to="/favorites" className={styles.iconBtn} aria-label="Избранное">
+          ♡
+        </NavLink>
+        <NavLink to="/profile" className={styles.avatar} aria-label="Профиль" />
+        <button className={styles.logout} onClick={logout}>Выйти</button>
       </nav>
 
-      <button onClick={logout} style={{ padding: "6px 10px" }}>
-        Выйти
-      </button>
+      {/* выдвижное меню */}
+      <DrawerMenu open={open} onClose={() => setOpen(false)} />
     </header>
   );
 }

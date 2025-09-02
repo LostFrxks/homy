@@ -143,7 +143,6 @@ export default function ResetPassword() {
       setOk(true);
     } catch (err: unknown) {
       setErrors({ general: getErrorMessage(err) });
-      // очистим код и поставим курсор в первую ячейку
       setCode(["", "", "", "", "", ""]);
       inputsRef.current[0]?.focus();
     } finally {

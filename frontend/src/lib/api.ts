@@ -325,3 +325,38 @@ export async function confirmPasswordCode(email: string, code: string) {
   return res.json();
 }
 
+export async function searchProperties(q: string) {
+  const base = import.meta.env.VITE_API_URL.replace(/\/+$/, "");
+  const res = await fetch(`${base}/properties/?q=${encodeURIComponent(q)}&limit=10`, {
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("access") || ""}`,
+    },
+    credentials: "include",
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  // ожидаем data.results как [{id, title, address, ...}]
+  return Array.isArray(data?.results) ? data.results : [];
+}
+
+export async function createShowing(payload: {
+  property_id: number | string;
+  datetime: string; // ISO
+  client_name?: string;
+  client_phone?: string;
+  note?: string;
+}) {
+  const base = import.meta.env.VITE_API_URL.replace(/\/+$/, "");
+  const res = await fetch(`${base}/showings/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${localStorage.getItem("access") || ""}`,
+    },
+    credentials: "include",
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
