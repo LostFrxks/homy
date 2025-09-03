@@ -1,43 +1,39 @@
-@host = http://127.0.0.1:8000
-@api = {{host}}/api/v1/auth
-@email = murem810@gmail.com   # ← поставь свою, если отправляешь через SMTP
-@name = Emir
-@password = 12345678
-
-### 1) Запросить код (на почту придёт письмо)
-POST {{api}}/register-request-code/
+### LOGIN — получить токены (ЧИСТО)
+POST http://127.0.0.1:8000/api/v1/auth/login/
 Content-Type: application/json
 
 {
-  "name": "{{name}}",
-  "email": "{{email}}",
-  "password": "{{password}}"
+  "email": "murem810@gmail.com",
+  "password": "123q123"
 }
 
-> {% client.test("request code ok", function () {
-    client.assert(response.status === 200);
-    client.log("Код отправлен на {{email}}");
-}) %}
+### /auth/me — проверить токен
+GET http://127.0.0.1:8000/api/v1/auth/me/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
 
-### 2) Подтвердить код (вставь код из письма)
-POST {{api}}/register-verify-code/
+### SUMMARY (счётчики)
+GET http://127.0.0.1:8000/api/v1/properties/?summary=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
+
+### КАТАЛОГ (по умолчанию активные)
+GET http://127.0.0.1:8000/api/v1/properties/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
+
+### МОИ АКТИВНЫЕ
+GET http://127.0.0.1:8000/api/v1/properties/?status=active&mine=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
+
+### МОИ ЧЕРНОВИКИ
+GET http://127.0.0.1:8000/api/v1/properties/?status=draft&mine=1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
+
+### СМЕНА СТАТУСА
+PATCH http://127.0.0.1:8000/api/v1/properties/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
 Content-Type: application/json
 
-{
-  "email": "{{email}}",
-  "code": "123456"   // ← сюда код из письма
-}
+{ "status": "active" }
 
-> {% client.test("verify ok", function () {
-    client.assert(response.status === 200);
-    client.assert(response.body.access, "нет access токена");
-    client.global.set("accessToken", response.body.access);
-}) %}
-
-### 3) Проверка защищёнки (пример)
-GET {{host}}/api/v1/properties/
-Authorization: Bearer {{accessToken}}
-
-> {% client.test("protected not 401", function () {
-    client.assert(response.status !== 401, "Unauthorized");
-}) %}
+### УДАЛЕНИЕ ЧЕРНОВИКА
+DELETE http://127.0.0.1:8000/api/v1/properties/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI

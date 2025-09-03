@@ -49,11 +49,64 @@ class PropertyViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         qs = super().get_queryset()
-        u = self.request.user
-        # Админ видит всё; остальные — свои
-        if u.is_staff:
-            return qs
-        return qs.filter(realtor=u)
+        request = self.request
+
+        status_param = request.query_params.get('status')
+        mine = request.query_params.get('mine') in {'1', 'true', 'True'}
+
+        # Явный фильтр по статусу (если пришёл)
+        if status_param:
+            qs = qs.filter(status=status_param)
+
+        if mine:
+            # Мои объекты (любые статусы)
+            qs = qs.filter(realtor=request.user)
+        else:
+            # Каталог: для не-staff по умолчанию показываем только активные,
+            # если статус не указан явно.
+            if not status_param and not request.user.is_staff:
+                try:
+                    from .models import Property
+                    qs = qs.filter(status=Property.Status.ACTIVE)
+                except Exception:
+                    qs = qs.filter(status='active')
+
+        return qs
+    
+    def list(self, request, *args, **kwargs):
+        if request.query_params.get('summary') in {'1', 'true', 'True'}:
+            user = request.user
+            try:
+                from .models import Property
+                ACTIVE = Property.Status.ACTIVE
+                DRAFT = Property.Status.DRAFT
+            except Exception:
+                ACTIVE = 'active'
+                DRAFT = 'draft'
+
+            base_qs = self.queryset  # уже select_related/prefetch
+            data = {
+                'total_active': base_qs.filter(status=ACTIVE).count(),
+                'my_active':    base_qs.filter(status=ACTIVE, realtor=user).count(),
+                'my_drafts':    base_qs.filter(status=DRAFT,  realtor=user).count(),
+            }
+            return Response(data)
+
+        return super().list(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        obj = self.get_object()
+        status_val = getattr(obj, 'status', None)
+
+        # Поддержим и enum, и строку
+        is_draft = (
+            status_val == 'draft' or
+            (hasattr(obj, 'Status') and status_val == getattr(obj.Status, 'DRAFT', None))
+        )
+        if not is_draft:
+            return Response({'detail': 'Можно удалять только черновик.'}, status=400)
+
+        return super().destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(realtor=self.request.user)
