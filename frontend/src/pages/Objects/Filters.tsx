@@ -19,22 +19,31 @@ type Props = {
 export default function FiltersBar({ preset, onApply }: Props) {
   const [sp, setSp] = useSearchParams();
 
-  const initial: Filters = useMemo(() => ({
-    q: sp.get("q") || "",
-    mine: sp.get("mine") === "1" || preset === "my",
-    published:
-      preset === "duty" ? "1" :
-      preset === "drafts" ? "0" :
-      (sp.get("published") === "1" || sp.get("published") === "0" ? (sp.get("published") as "1" | "0") : ""),
-    price_min: sp.get("price_min") || "",
-    price_max: sp.get("price_max") || "",
-    rooms: sp.get("rooms") || "",
-  }), [sp, preset]);
+  const initial: Filters = useMemo(
+    () => ({
+      q: sp.get("q") || "",
+      mine: sp.get("mine") === "1" || preset === "my",
+      published:
+        preset === "duty"
+          ? "1"
+          : preset === "drafts"
+          ? "0"
+          : (sp.get("published") === "1" || sp.get("published") === "0"
+              ? (sp.get("published") as "1" | "0")
+              : ""),
+      price_min: sp.get("price_min") || "",
+      price_max: sp.get("price_max") || "",
+      rooms: sp.get("rooms") || "",
+    }),
+    [sp, preset]
+  );
 
   const [f, setF] = useState<Filters>(initial);
 
   // при смене пресета — подтягиваем дефолты
-  useEffect(() => { setF(initial); }, [initial]);
+  useEffect(() => {
+    setF(initial);
+  }, [initial]);
 
   const canToggleMine = preset !== "my";
   const canChangePublished = preset !== "duty" && preset !== "drafts";
@@ -47,8 +56,19 @@ export default function FiltersBar({ preset, onApply }: Props) {
     if (f.price_min) next.set("price_min", f.price_min);
     if (f.price_max) next.set("price_max", f.price_max);
     if (f.rooms) next.set("rooms", f.rooms);
+
     setSp(next, { replace: true });
-    onApply({ ...f, mine: canToggleMine ? f.mine : preset === "my", published: canChangePublished ? f.published : (preset === "duty" ? "1" : preset === "drafts" ? "0" : "") });
+    onApply({
+      ...f,
+      mine: canToggleMine ? f.mine : preset === "my",
+      published: canChangePublished
+        ? f.published
+        : preset === "duty"
+        ? "1"
+        : preset === "drafts"
+        ? "0"
+        : "",
+    });
   }
 
   function clearAll() {
@@ -97,17 +117,24 @@ export default function FiltersBar({ preset, onApply }: Props) {
         inputMode="numeric"
         placeholder="Цена от"
         value={f.price_min}
-        onChange={(e) => setF((x) => ({ ...x, price_min: e.target.value.replace(/\D/g, "") }))}
+        onChange={(e) =>
+          setF((x) => ({ ...x, price_min: e.target.value.replace(/\D/g, "") }))
+        }
       />
       <input
         className={styles.input}
         inputMode="numeric"
         placeholder="Цена до"
         value={f.price_max}
-        onChange={(e) => setF((x) => ({ ...x, price_max: e.target.value.replace(/\D/g, "") }))}
+        onChange={(e) =>
+          setF((x) => ({ ...x, price_max: e.target.value.replace(/\D/g, "") }))
+        }
       />
 
-      <label className={styles.checkboxRow} title={canToggleMine ? "" : "В этом режиме всегда только мои"}>
+      <label
+        className={styles.checkboxRow}
+        title={canToggleMine ? "" : "В этом режиме всегда только мои"}
+      >
         <input
           type="checkbox"
           checked={f.mine}
@@ -121,7 +148,12 @@ export default function FiltersBar({ preset, onApply }: Props) {
         <select
           className={styles.select}
           value={f.published}
-          onChange={(e) => setF((x) => ({ ...x, published: e.target.value as "1" | "0" | "" }))}
+          onChange={(e) =>
+            setF((x) => ({
+              ...x,
+              published: e.target.value as "1" | "0" | "",
+            }))
+          }
         >
           <option value="">Любой статус</option>
           <option value="1">Опубликовано</option>
@@ -129,8 +161,12 @@ export default function FiltersBar({ preset, onApply }: Props) {
         </select>
       )}
 
-      <button className={styles.primary} onClick={apply}>Применить</button>
-      <button className={styles.secondary} onClick={clearAll}>Сбросить</button>
+      <button className={styles.primary} onClick={apply}>
+        Применить
+      </button>
+      <button className={styles.secondary} onClick={clearAll}>
+        Сбросить
+      </button>
     </div>
   );
 }

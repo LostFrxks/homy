@@ -1,0 +1,531 @@
+/* Header */
+main{
+    background-color: #fff;
+}
+.header { margin-bottom: 12px; }
+.topRow {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.back, .close {
+  height: 36px; padding: 0 12px; border-radius: 10px;
+  background: #fff; border: 1px solid #e5e7eb; cursor: pointer;
+}
+.back:disabled { opacity: .6; cursor: not-allowed; }
+.stepper { display: flex; gap: 6px; margin-top: 10px; }
+.stepDot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #e5e7eb;
+}
+.stepDot.active { background: #2563eb; }
+.stepDot.done { background: #60a5fa; }
+
+/* Form */
+.form { display: block; }
+.h2 { margin: 4px 0 12px; font-size: 18px; font-weight: 600; }
+.formRow { margin-bottom: 12px; }
+.twoCols { display: grid; grid-template-columns: 1fr 160px; gap: 10px; }
+.label { display: block; margin-bottom: 6px; color: #374151; font-size: 13px; }
+.input, .select, .textarea {
+  width: 100%; height: 40px; padding: 0 12px;
+  border: 1px solid #e5e7eb; border-radius: 10px; outline: none;
+  background: #fff; color: #111827;
+}
+.textarea {
+  height: 160px; padding: 10px 12px; resize: vertical; line-height: 1.4;
+}
+.input:focus, .select:focus, .textarea:focus { border-color: #93c5fd; box-shadow: 0 0 0 3px rgba(147,197,253,.35); }
+
+.checkboxRow, .switchRow { display: inline-flex; gap: 8px; align-items: center; user-select: none; }
+.hint { margin-top: 6px; font-size: 12px; color: #6b7280; }
+.note { margin: 8px 0 0; font-size: 13px; color: #6b7280; }
+
+/* Pills (used in StepSelect & StepPrice) */
+.pills { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.pillActive { background: #2563eb; border-color: #2563eb; color: #fff; }
+
+/* Upload grid */
+.uploadGrid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+}
+.uploadCell {
+  position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #e5e7eb;
+  background: #f3f4f6;
+  aspect-ratio: 1 / 1;
+}
+.uploadImg { width: 100%; height: 100%; object-fit: cover; display: block; }
+.uploadDel {
+  position: absolute; top: 6px; right: 6px; width: 26px; height: 26px;
+  border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; cursor: pointer;
+}
+.uploadAdd {
+  border: 1px dashed #cbd5e1; background: #fafafa; border-radius: 12px; cursor: pointer;
+  aspect-ratio: 1 / 1; font-size: 28px;
+}
+
+/* Footer */
+.footer {
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center;
+}
+.btn {
+  height: 40px; padding: 0 14px; border-radius: 10px;
+  border: 1px solid #e5e7eb; background: #fff; cursor: pointer;
+}
+.primary { background: #CB0000CC; border-color: #2563eb; color: #fff; }
+.btn:disabled { opacity: .6; cursor: not-allowed; }
+
+.sectionHead {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px; background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 12px;
+  margin: 14px 0;
+}
+.sectionTitle, .sectionTitle2 { margin: 0; font-size: 18px; font-weight: 600; }
+.regionLink, .sectionCity { color: #2563eb; text-decoration: none; }
+
+/* Общие цвета */
+:root {
+  --bg: #fff;
+  --card-bg: #fff;
+  --text: #111827;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --primary: #e53935;         /* красная как в макете */
+  --primary-hover: #d32f2f;
+  --ghost-bg: #ffffff;
+}
+
+/* Только крестик сверху справа */
+.closeSmall {
+    position: absolute;
+    right: 12px;
+    width: 32px; 
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--card-bg);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.closeSmall:hover { background: #fafafa; }
+
+/* Карточка шага */
+
+
+
+.cardTitle {
+  font-size: 22px;
+  font-weight: 700;
+  color: #444444;
+}
+
+/* Низ (как в макете, Primary справа) */
+.footer {
+  position: sticky;
+  bottom: 0;
+  background: var(--bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.footerRight { display: flex; gap: 10px; }
+
+/* Кнопки */
+.btnPrimary {
+  height: 44px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 10px;
+  background: #CB0000CC;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btnPrimary:hover { background: var(--primary-hover); }
+.btnPrimary:disabled { opacity: .6; cursor: not-allowed; }
+
+.btnGhost {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--ghost-bg);
+  color: var(--text);
+  cursor: pointer;
+}
+.btnGhost:hover { background: #fafafa; }
+
+/* === Стили для StepSelectType (пилюли) === */
+.group {
+  margin-top: 8px;
+}
+
+.groupHead {
+  margin: 10px 0 6px;
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 12px;
+  width: auto;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid #E7E7E7;
+  border-radius: 5px;
+  background: #fff;
+  color: #444444;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.1s ease;
+  font-weight: 400;
+  width: 48.871%;
+  justify-content: center;
+  text-wrap: nowrap;
+}
+.pill:hover { 
+    border-color: #90caf9;
+}
+
+.pillActive {
+  border-color: #90caf9;
+  background: #e3f2fd;
+  color: #0b63b8;
+}
+
+
+
+
+/* Контейнер мастера: колонка на всю высоту вьюпорта */
+.wrap {
+  background: #fff;           /* чисто белый фон */
+  position: relative;
+}
+
+/* заголовок страницы */
+.pageTitle {
+  margin: 0 0 12px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #000000;
+}
+
+/* секции и серый разделитель */
+.section { padding: 12px 0; }
+.groupHead {
+  margin: 10px 0 12px;
+  font-size: 18px;
+  font-weight: 400;
+  color: #000000;
+}
+
+/* “полоса” между секциями как в макете */
+.hr {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  margin: 12px -4px;
+}
+
+/* убираем визуальную “карточку” */
+.card {
+  padding: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  margin-top: 8px;
+  background-color: #fff;
+}
+
+/* Футер прижат книзу, даже когда контента мало */
+.footer {
+  margin-top: auto;             /* <- магия прижатия */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  padding: 12px 0;
+}
+
+/* Кнопки (если нужно чуть поправить) */
+.btn {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  cursor: pointer;
+}
+.primary {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+.primary:disabled { opacity: .6; cursor: not-allowed; }
+
+
+
+/* --- Прогресс в виде полос --- */
+.topControls{
+  position: relative;
+  z-index: 2;                     /* выше прогресс-бара */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+/* «назад» как текстовая ссылка */
+.backLink{
+    all: unset;                      /* сбросить любые button-правила */
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #2563eb;
+  font: inherit;
+  cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.backLink:hover{ text-decoration: underline; }
+.backLink:disabled{
+  color: #9ca3af;
+  cursor: default;
+  text-decoration: none;
+}
+
+/* крестик */
+.closeBtn {
+  all: unset;
+  position: absolute;
+  right: 8px;
+  width: 22px; 
+  height: 22px;
+  display: grid; 
+  place-items: center;
+  background: #fff;
+  border: 2px solid #7493cd;
+  border-radius: 4px;
+  z-index: 10;
+  cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.closeBtn:hover { background: #f6f9ff; border-color: #7a95cb; }
+.closeBtn:active { background: #eaf1ff; }
+.closeBtn:focus-visible { outline: 2px solid #7a95cb; outline-offset: 2px; }
+
+/* Иконка "Х" */
+.closeIcon {
+  width: 22px;
+  height: 22px;
+  stroke: #7493cd;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+}
+
+/* прогресс ниже шапки */
+.progress{
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-auto-flow: column;
+  gap: 12px;
+  margin: 8px 0 16px;
+}
+
+/* НЕ наследуем общие стили для button */
+.bar{
+  all: unset;                      /* сбросить любые button-правила */
+  display: block;
+  height: 6px;
+  background: #e5e7eb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.barDone   { 
+    background: #2563eb; 
+} /* синий — шаг валиден */
+.barActive { 
+    background: #CB0000CC; 
+}
+
+/* убираем чёрную обводку при клике/фокусе */
+.btn:focus, .btn:active,
+.pill:focus, .pill:active,
+.bar:focus, .bar:active,
+.closeSmall:focus, .closeSmall:active {
+  outline: none;
+  box-shadow: none;
+}
+
+
+
+
+
+/* убираем тап-подсветку на мобилках */
+button, .pill, .btn, .btnPrimary { -webkit-tap-highlight-color: transparent; }
+
+/* при клике мышью – без чёрной обводки */
+.pill:focus,
+.btn:focus,
+.btnPrimary:focus { outline: none; }
+
+/* для клавиатуры оставим мягкое подсвечивание */
+.pill:focus-visible,
+.btn:focus-visible,
+.btnPrimary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, .45);
+}
+
+/* (опционально для Firefox) убираем внутреннюю пунктирную рамку */
+.pill::-moz-focus-inner,
+.btn::-moz-focus-inner,
+.btnPrimary::-moz-focus-inner { border: 0; }
+
+
+
+
+
+
+
+.addrWrap { margin-top: 6px; }
+
+.addrList {
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+  margin-bottom: 14px;
+}
+
+.addrLabel {
+  font-size: 16px;
+  color: #111827;
+  font-weight: 600;
+}
+
+/* текстовая кнопка справа "выбрать … ›" */
+.pickLink {
+  all: unset;
+  color: #6b7280;
+  cursor: pointer;
+  font-size: 15px;
+}
+.pickLink:hover { 
+    color: #374151; 
+}
+.pickLink:disabled { 
+    opacity: .5; 
+    cursor: not-allowed; 
+}
+
+.chev { 
+    color: #9ca3af;
+    margin-left: 4px; 
+}
+
+/* выпадающее меню */
+.menu {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: calc(100% + 6px);
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.08);
+  padding: 6px;
+  z-index: 200;
+}
+.menuItem {
+  all: unset;
+  display: block;
+  width: 100%;
+  padding: 10px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #111827;
+}
+.menuItem:last-child { 
+    border-bottom: 0; 
+}
+.menuItem:hover {
+    background: #f9fafb; 
+}
+
+.menuEmpty {
+  padding: 10px 12px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.addrWrap { 
+    margin-top: 8px; 
+}
+
+.addrList{
+  position: relative;
+  overflow: visible;      /* нужно, чтобы меню не обрезалось */
+  background: #fff;
+  border-radius: 12px;
+  border: none;           /* настоящую рамку отключаем */
+}
+
+
+.addrItem {
+  position: relative;           /* якорь для .menu */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.addrLabel {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+/* ссылка справа "выбрать …" */
+.pickLink {
+  all: unset;                   /* сбрасываем общие button-стили */
+  cursor: pointer;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 8px;
+}
+.pickLink:hover { background: #f3f4f6; }
+.pickLink:disabled { color: #9ca3af; cursor: not-allowed; }
+.chev { color: #9ca3af; }
+
+
+/* Responsive */
+@media (max-width: 520px) {
+  .twoCols { grid-template-columns: 1fr 120px; }
+  .wrap { margin-top: 16px; }
+}
+

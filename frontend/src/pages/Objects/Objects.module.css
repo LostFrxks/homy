@@ -1,5 +1,8 @@
+/* страница */
 .container {
-  padding: 8px 0 24px;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 20px 16px 40px;
 }
 
 /* заголовок и действия */
@@ -8,27 +11,81 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin: 6px 0 12px;
+  margin: 6px 0 16px;
 }
 .title {
   margin: 0;
-  font-size: 22px;
-  font-weight: 400;
-  color: #111;
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--text);
 }
 .headerActions { display: flex; gap: 8px; }
 .primary {
-  height: 38px;
-  padding: 0 14px;
-  background: #2563eb;
+  height: 40px;
+  padding: 0 16px;
+  background: var(--primary);
   color: #fff;
   border: 0;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
+  box-shadow: 0 6px 16px rgba(37,99,235,.18);
 }
 .primary:hover { background: #1d4ed8; }
 
-/* ФИЛЬТРЫ */
+/* карточка каталога (поиск + категории) */
+.catalogCard{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.06);
+  padding: 14px;
+  margin-bottom: 16px;
+}
+
+/* поиск внутри карточки */
+.search{
+  position: relative;
+  margin-bottom: 10px;
+}
+.searchIcon{
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--muted);
+}
+
+/* список категорий */
+.cats{ list-style: none; margin: 6px 0 0; padding: 0; }
+.catRow{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px;
+  padding: 14px 8px;
+  cursor: pointer;
+  border-top: 1px solid var(--border);
+  border-radius: 10px;
+}
+.cats .catRow:first-child{ border-top: 0; }
+.catRow:hover{ background: #f8fafc; }
+.catLeft{ display: inline-flex; align-items: center; gap: 10px; }
+.catIcon{ font-size: 20px; }
+.catLink{ font-weight: 600; color: #1e40af; }
+.catCount{ color: var(--muted); }
+
+/* активная категория */
+.catRowActive{ background: #eef2ff; }
+.catRowActive .catLink{ color: #111; text-decoration: none; }
+
+/* «Наши объявления / город» */
+.sectionHead{
+  display: flex; align-items: center; justify-content: space-between;
+  background: #f8fafc;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin: 16px 0 12px;
+}
+.sectionTitle2{ margin: 0; font-size: 20px; font-weight: 700; color: var(--text); }
+.sectionCity{ font-weight: 700; }
+
+/* ФИЛЬТРЫ (оставляем сеткой) */
 .filters {
   display: grid;
   grid-template-columns: 1.4fr 0.9fr 0.7fr 0.7fr 0.9fr 1fr 0.9fr 0.9fr;
@@ -38,39 +95,39 @@
 }
 .input, .select {
   height: 38px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
   padding: 0 12px;
   background: #fff;
-  color: #111;
+  color: var(--text);
   outline: none;
 }
 .select { padding-right: 8px; }
-.checkboxRow { display: inline-flex; align-items: center; gap: 6px; user-select: none; }
+.checkboxRow { display: inline-flex; align-items: center; gap: 6px; user-select: none; color: var(--text); }
 .secondary {
   height: 38px;
   padding: 0 14px;
   background: #fff;
-  color: #111;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 10px;
   cursor: pointer;
 }
 .secondary:hover { background: #f9fafb; }
 
-/* сетка карточек */
+/* сетка карточек объектов */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
 }
 
-/* карточка */
+/* карточка объекта */
 .card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  box-shadow: 0 6px 20px rgba(0,0,0,.06);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 22px rgba(0,0,0,.06);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -80,24 +137,22 @@
 .thumbStub { width: 100%; height: 100%; background: linear-gradient(90deg,#f3f4f6,#f9fafb,#f3f4f6); }
 
 .cardBody { padding: 12px; display: flex; flex-direction: column; gap: 6px; }
-.cardTitle { font-size: 16px; font-weight: 500; color: #111; }
-.cardMeta { font-size: 13px; color: #6b7280; display: flex; gap: 10px; flex-wrap: wrap; }
+.cardTitle { font-size: 16px; font-weight: 600; color: var(--text); }
+.cardMeta { font-size: 13px; color: var(--muted); display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* пагинация */
-.pager { margin-top: 12px; display: flex; justify-content: center; }
-.secondary, .disabled {
-  height: 40px; padding: 0 14px; border-radius: 8px; border: 1px solid #e5e7eb;
-  background: #fff; cursor: pointer;
+.pager { margin-top: 14px; display: flex; justify-content: center; }
+.disabled {
+  height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border);
+  background: #e5e7eb; color: #6b7280; cursor: not-allowed; opacity: .9;
 }
-.secondary:hover { background: #f9fafb; }
-.disabled { cursor: not-allowed; opacity: .6; }
 
 /* спиннер в кнопке */
 .btnContent { display: inline-flex; align-items: center; gap: 8px; }
 .spinner {
   width: 16px; height: 16px;
   border: 2px solid rgba(37,99,235,.15);
-  border-top-color: #2563eb;
+  border-top-color: var(--primary);
   border-radius: 50%;
   display: inline-block;
   animation: spin .8s linear infinite;
@@ -106,10 +161,99 @@
 
 /* состояния */
 .empty, .error {
-  border-radius: 10px; padding: 10px; font-size: 13px; margin: 8px 0;
+  border-radius: 12px; padding: 12px; font-size: 14px; margin: 10px 0;
 }
 .empty { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
 .error { background: #fde8e8; color: #b91c1c; border: 1px solid #fecaca; }
+
+
+/* === Каталог: карточка с поиском и категориями === */
+.catalogCard {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.06);
+  padding: 16px 14px;
+  margin: 8px 0 16px;
+}
+
+/* поиск */
+.search {
+  position: relative;
+  margin-bottom: 12px;
+}
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  line-height: 0;
+  color: #6b7280;
+}
+.searchInput {
+  width: calc(100% - 48px);
+  height: 40px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0 12px 0 36px; /* место под иконку */
+  outline: none;
+  background: #f9fafb;
+  color: #111;
+}
+.searchInput::placeholder { color: #9ca3af; }
+
+/* список категорий */
+.cats { list-style: none; margin: 0; padding: 0; }
+.catRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 4px;
+  border-top: 1px solid #e5e7eb;
+}
+.catLeft { display: inline-flex; align-items: center; gap: 10px; }
+.catIcon { font-size: 18px; }
+.catLink {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+.catLink:hover { text-decoration: underline; }
+.catCount { color: #6b7280; font-size: 14px; }
+
+/* «Наши объявления» + город */
+.sectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 12px 0;
+}
+.sectionTitle2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
+}
+.sectionCity {
+  color: #2563eb;
+  text-decoration: underline;
+}
+.sectionCity:hover { text-decoration: none; }
+
+/* активная категория */
+.catRowActive {
+  background: #eef2ff;
+}
+.catRowActive .catLink {
+  color: #111;
+  text-decoration: none;
+}
+
+
 
 /* адаптив */
 @media (max-width: 980px) {
@@ -122,6 +266,12 @@
     grid-template-columns: 1fr 1fr;
   }
 }
+
+@media (max-width: 500px) {
+  .searchInput { height: 44px; }
+  .catRow { padding: 14px 6px; }
+}
+
 @media (max-width: 420px) {
   .title { font-size: 20px; }
   .grid { grid-template-columns: 1fr; }

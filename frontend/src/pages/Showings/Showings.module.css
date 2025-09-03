@@ -1,4 +1,10 @@
-.container { padding: 8px 0 24px; }
+*, body{
+  margin: 0;
+}
+.container { 
+  padding: 8px 0 24px; 
+  background-color: #f3f4f6;
+}
 
 .headerRow {
   display: flex; align-items: center; justify-content: space-between;
