@@ -16,13 +16,21 @@ export type ListingDraft = {
   kind: ObjectType | null;               // "apartment" | "house" | "land" | "commercial" | "business" | "parking"
 
   // адрес
-  city?: string; district?: string; microdistrict?: string;
-  street?: string; house?: string; hideHouse?: boolean;
+  city?: string; 
+  district?: string; 
+  microdistrict?: string;
+  street?: string; 
+  house?: string; 
+  hideHouse?: boolean;
 
   // цена / условия
   price?: string;
-  rent_price?: string; period?: "day" | "month";
-  deposit?: string; prepay?: string; utilities_included?: boolean; commission?: string;
+  rent_price?: string; 
+  period?: "day" | "month";
+  deposit?: string; 
+  prepay?: string; 
+  utilities_included?: boolean; 
+  commission?: string;
 
   // описание
   description?: string;
@@ -31,7 +39,9 @@ export type ListingDraft = {
   photos?: string[];
 
   // контакты
-  phone?: string; name?: string; owner?: boolean;
+  phone?: string; 
+  name?: string; 
+  owner?: boolean;
 };
 
 const ALL_STEPS = ["select","address","price","description","photos","contacts"] as const;
@@ -48,17 +58,12 @@ export default function Wizard() {
   const idx = flow.indexOf(step);
 
   // валидаторы по шагам — определяют, когда шаг считается "выполненным"
-  const validators: Record<StepId, (d: ListingDraft) => boolean> = {
+ const validators: Record<StepId, (d: ListingDraft) => boolean> = {
     select:   d => Boolean(d.deal && d.kind),
     address:  d => Boolean(d.city && d.street),
     price:    d => (d.deal === "sale" ? Boolean(d.price) : Boolean(d.rent_price)),
-
     description: d => Boolean(d.description && d.description.trim().length > 0),
-
-    // станет выполнен только если добавлена хотя бы 1 фотка
-    // (если у тебя не string[], а File[]/{url:string}[], оставь только проверку длины)
-    photos: d => Array.isArray(d.photos) && d.photos.filter(Boolean).length > 0,
-
+    photos:   d => Array.isArray(d.photos) && d.photos.filter(Boolean).length > 0,
     contacts: d => Boolean(d.phone && d.phone.trim()),
   };
 
@@ -74,6 +79,8 @@ export default function Wizard() {
 
   const goNext = () => { if (idx < flow.length - 1) setStep(flow[idx + 1]); };
   const goPrev = () => { if (idx > 0) setStep(flow[idx - 1]); };
+  
+  
 
   return (
     <div className={s.wrap}>
@@ -160,7 +167,7 @@ export default function Wizard() {
         {step === "contacts" && (
           <>
             <h2 className={s.cardTitle}>Укажите контакты</h2>
-            <StepContacts value={data} onChange={setData} />
+            <StepContacts value={data} onChange={update} />
           </>
         )}
       </section>
@@ -173,9 +180,9 @@ export default function Wizard() {
           disabled={!canNext}
           onClick={idx === flow.length - 1 ? () => alert("Пока только UI — подключим API позже") : goNext}
         >
-          {idx === flow.length - 1 ? "Разместить объявление" : "Перейти к подаче"}
+          {idx === flow.length - 1 ? "Разместить объявление" : "Далее"}
         </button>
-      </div>
+      </div> 
     </div>
   );
 }

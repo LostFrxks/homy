@@ -124,38 +124,42 @@ export default function StepAddress({ value, onChange }: Props) {
           )}
         </div>
       </div>
+      
+      {/* Поля улицы и номера дома — в одну строку */}
+      <div className={s.twoColsRow}>
+        <div className={s.formItem}>
+          <label className={s.labelRow}>Улица</label>
+          <input
+            className={s.input}
+            placeholder="Например, Айни"
+            value={value.street || ""}
+            onChange={(e) => onChange({ street: e.target.value })}
+          />
+        </div>
 
-      {/* Поля улицы/дома и чекбокс — как в макете ниже списка */}
-      <div className={s.formRow}>
-        <label className={s.label}>Улица</label>
-        <input
-          className={s.input}
-          placeholder="Например, Айни"
-          value={value.street || ""}
-          onChange={(e) => onChange({ street: e.target.value })}
-        />
-      </div>
-
-      <div className={s.twoCols}>
-        <div className={s.formRow}>
-          <label className={s.label}>Дом</label>
+        <div className={s.formItem}>
+          <label className={s.labelRow}>Номер дома</label>
           <input
             className={s.input}
             placeholder="№"
             value={value.house || ""}
             onChange={(e) => onChange({ house: e.target.value })}
+            disabled={Boolean(value.hideHouse)}
           />
         </div>
       </div>
 
-      <label className={s.checkboxRow} style={{ marginTop: 8 }}>
+      {/* Строка с чекбоксом — как текст слева, чекбокс справа, с разделителем снизу */}
+      <label className={s.checkLine}>
+        <span>Скрыть номер дома</span>
         <input
           type="checkbox"
           checked={Boolean(value.hideHouse)}
-          onChange={(e) => onChange({ hideHouse: e.target.checked })}
+          onChange={(e) => onChange({ hideHouse: e.target.checked })
+        } style={{ cursor: "pointer" }}
         />
-        <span>Скрыть номер дома</span>
       </label>
+
     </div>
   );
 }

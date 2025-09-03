@@ -17,7 +17,6 @@ export default function StepPrice({ value, onChange }: Props) {
 
       {isSale ? (
         <div className={s.formRow}>
-          <label className={s.label}>Цена</label>
           <input
             className={s.input}
             inputMode="numeric"
