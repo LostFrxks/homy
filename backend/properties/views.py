@@ -8,6 +8,11 @@ from .models import Property, PropertyImage
 from .serializers import PropertySerializer, PropertyImageSerializer
 from .permissions import IsOwnerOrReadOnly  
 
+from rest_framework.permissions import IsAuthenticated
+
+from .models import Favorite, Property
+from .serializers import FavoriteSerializer
+
 class PropertyFilter(dj_filters.FilterSet):
     class Meta:
         model = Property
@@ -110,3 +115,32 @@ class PropertyViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(realtor=self.request.user)
+
+
+class FavoriteViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    GET /api/v1/favorites/ — список моих избранных объектов (id избранного + property id)
+    POST /api/v1/favorites/toggle/ {"property_id": N} — переключить избранное
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = FavoriteSerializer
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user).select_related("property").order_by("-created_at")
+
+    @action(detail=False, methods=["post"])
+    def toggle(self, request):
+        prop_id = request.data.get("property_id")
+        if not prop_id:
+            return Response({"detail": "property_id is required"}, status=400)
+        try:
+            prop = Property.objects.get(pk=prop_id)
+        except Property.DoesNotExist:
+            return Response({"detail": "Property not found"}, status=404)
+
+        fav, created = Favorite.objects.get_or_create(user=request.user, property=prop)
+        if created:
+            return Response({"is_favorite": True}, status=status.HTTP_201_CREATED)
+        # уже было — удаляем
+        fav.delete()
+        return Response({"is_favorite": False})

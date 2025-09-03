@@ -35,6 +35,8 @@ class User(AbstractUser):
 
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.REALTOR)
     email = models.EmailField(unique=True)
+
+    phone = models.CharField(max_length=30, blank=True) 
     
     # Важно для аутентификации по email
     USERNAME_FIELD = 'email'

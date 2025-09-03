@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    LoginView, RefreshView, MeView, RegisterView, ForgotPasswordView, ResetPasswordView,
+    LoginView, RefreshView, MeView, RegisterView,
     register_request_code, register_verify_code, ForgotPasswordNoAuthView, ResetPasswordNoAuthView
 )
 
@@ -17,4 +17,5 @@ urlpatterns = [
 
     path("register-request-code/", register_request_code),
     path("register-verify-code/", register_verify_code),
+    
 ]

@@ -45,3 +45,17 @@ class PropertyImage(models.Model):
         except Exception:
             pass
     def __str__(self): return f"PropertyImage<{self.id}> for Property<{self.property_id}>"
+
+class Favorite(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="favorites")
+    property = models.ForeignKey("properties.Property", on_delete=models.CASCADE, related_name="fav_by")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "property")
+        indexes = [
+            models.Index(fields=["user", "property"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user_id} → {self.property_id}"

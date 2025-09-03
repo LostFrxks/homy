@@ -5,7 +5,9 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from datetime import timedelta
-from .models import PasswordResetCode
+from .models import PasswordResetCode, User
+from django.core.exceptions import FieldDoesNotExist
+import re
 
 User = get_user_model()
 
@@ -162,3 +164,116 @@ class RegisterRequestSerializer(serializers.Serializer):
 class RegisterVerifySerializer(serializers.Serializer):
     email = serializers.EmailField()
     code = serializers.CharField(max_length=6)
+
+
+
+
+_PHONE_RE = re.compile(r'^[0-9+\-\s()]{6,32}$')
+class MeSerializer(serializers.ModelSerializer):
+    # счётчики только для чтения
+    properties_active = serializers.SerializerMethodField()
+    properties_draft = serializers.SerializerMethodField()
+    showings_planned_today = serializers.SerializerMethodField()
+    deals_open = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            "id", "email", "first_name", "last_name", "phone", "role",
+            "properties_active", "properties_draft",
+            "showings_planned_today", "deals_open",
+        )
+        read_only_fields = ("email", "role")
+
+    # простая валидация телефона
+    def validate_phone(self, value: str):
+        v = (value or "").strip()
+        if v and not _PHONE_RE.match(v):
+            raise serializers.ValidationError("Некорректный телефонный номер.")
+        return v
+
+    # --- counters ---
+    def get_properties_active(self, user) -> int:
+        try:
+            from properties.models import Property
+            return Property.objects.filter(realtor=user, status=getattr(Property.Status, "ACTIVE", "active")).count()
+        except Exception:
+            return 0
+
+    def get_properties_draft(self, user) -> int:
+        try:
+            from properties.models import Property
+            return Property.objects.filter(realtor=user, status=getattr(Property.Status, "DRAFT", "draft")).count()
+        except Exception:
+            return 0
+
+    def get_showings_planned_today(self, user) -> int:
+        try:
+            from showings.models import Showing
+            today = timezone.localdate()
+            return Showing.objects.filter(agent=user, status="planned", starts_at__date=today).count()
+        except Exception:
+            return 0
+
+    from django.core.exceptions import FieldDoesNotExist
+
+    def get_deals_open(self, user: "User") -> int:
+        """
+        Возвращает количество «незакрытых» сделок для пользователя.
+        Поддерживает разные схемы полей:
+        - агент: agent / assigned_to / created_by / user
+        - состояние: status / stage / is_closed
+        """
+        try:
+            from deals.models import Deal  # type: ignore
+        except Exception:
+            return 0
+
+        # --- определить поле "агента" динамически ---
+        agent_field_candidates = ["agent", "assigned_to", "created_by", "user"]
+        agent_field = None
+        for name in agent_field_candidates:
+            try:
+                Deal._meta.get_field(name)
+                agent_field = name
+                break
+            except FieldDoesNotExist:
+                continue
+
+        # если вообще не нашли поле агента — считаем по всем
+        if agent_field:
+            qs = Deal.objects.filter(**{agent_field: user})
+        else:
+            qs = Deal.objects.all()
+
+        # --- применить «незакрытость» по разным схемам ---
+        # 1) status (строка/choices)
+        try:
+            Deal._meta.get_field("status")
+            return qs.exclude(status__in=["closed_won", "closed_lost", "closed"]).count()
+        except FieldDoesNotExist:
+            pass
+        except Exception:
+            return 0
+
+        # 2) stage (строка/choices)
+        try:
+            Deal._meta.get_field("stage")
+            closed_stages = {"closed_won", "closed_lost", "closed", "lost", "won", "done"}
+            return qs.exclude(stage__in=list(closed_stages)).count()
+        except FieldDoesNotExist:
+            pass
+        except Exception:
+            return 0
+
+        # 3) is_closed (bool)
+        try:
+            Deal._meta.get_field("is_closed")
+            return qs.filter(is_closed=False).count()
+        except FieldDoesNotExist:
+            pass
+        except Exception:
+            return 0
+
+        # Фоллбэк: если никакого статуса нет — просто количество таких сделок
+        return qs.count()

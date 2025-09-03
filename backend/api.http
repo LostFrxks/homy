@@ -7,33 +7,19 @@ Content-Type: application/json
   "password": "123q123"
 }
 
-### /auth/me — проверить токен
-GET http://127.0.0.1:8000/api/v1/auth/me/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
 
-### SUMMARY (счётчики)
-GET http://127.0.0.1:8000/api/v1/properties/?summary=1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
-
-### КАТАЛОГ (по умолчанию активные)
-GET http://127.0.0.1:8000/api/v1/properties/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
-
-### МОИ АКТИВНЫЕ
-GET http://127.0.0.1:8000/api/v1/properties/?status=active&mine=1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
-
-### МОИ ЧЕРНОВИКИ
-GET http://127.0.0.1:8000/api/v1/properties/?status=draft&mine=1
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
-
-### СМЕНА СТАТУСА
-PATCH http://127.0.0.1:8000/api/v1/properties/1/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
+### FAV — список моих избранных
+GET http://127.0.0.1:8000/api/v1/favorites/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTI3MDYzLCJpYXQiOjE3NTY5MjYxNjMsImp0aSI6IjY3ZTRjNzM4ZjIzZDRlYmJiOTcyZWExZTA3NDBlMjEzIiwidXNlcl9pZCI6IjIifQ.-vcD4kYOpumbFNV7fhYMOxGrpdeOfRyIOJweaEJHzvQ
+### FAV — toggle ON
+POST http://127.0.0.1:8000/api/v1/favorites/toggle/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTI3MDYzLCJpYXQiOjE3NTY5MjYxNjMsImp0aSI6IjY3ZTRjNzM4ZjIzZDRlYmJiOTcyZWExZTA3NDBlMjEzIiwidXNlcl9pZCI6IjIifQ.-vcD4kYOpumbFNV7fhYMOxGrpdeOfRyIOJweaEJHzvQ
 Content-Type: application/json
 
-{ "status": "active" }
+{ "property_id": 1 }
 
-### УДАЛЕНИЕ ЧЕРНОВИКА
-DELETE http://127.0.0.1:8000/api/v1/properties/1/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2ODU1MTI2LCJpYXQiOjE3NTY4NTQyMjYsImp0aSI6IjEzOTcxMjMyMThiZTQ1ZTM5NzA1ZmY0NDY2MWUyOTExIiwidXNlcl9pZCI6IjIifQ.Zl1OGGZdOOwRLjSQ4OyNlaFUM-FHQcehCgv6lwE90lI
+### FAV — toggle OFF (повторим тот же property_id)
+POST http://127.0.0.1:8000/api/v1/favorites/toggle/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTI3MDYzLCJpYXQiOjE3NTY5MjYxNjMsImp0aSI6IjY3ZTRjNzM4ZjIzZDRlYmJiOTcyZWExZTA3NDBlMjEzIiwidXNlcl9pZCI6IjIifQ.-vcD4kYOpumbFNV7fhYMOxGrpdeOfRyIOJweaEJHzvQ
+Content-Type: application/json
+{ "property_id": 1 }
