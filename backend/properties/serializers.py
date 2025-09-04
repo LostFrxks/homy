@@ -1,6 +1,6 @@
 # properties/serializers.py
 from rest_framework import serializers
-from .models import Property, PropertyImage
+from .models import Property, PropertyImage, Favorite
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     realtor  = serializers.SerializerMethodField(read_only=True)
@@ -21,13 +21,14 @@ class PropertySerializer(serializers.ModelSerializer):
     # «человеческие» варианты из choices
     status_display = serializers.CharField(source="get_status_display", read_only=True)
     deal_type_display = serializers.CharField(source="get_deal_type_display", read_only=True)
+    is_favorite = serializers.SerializerMethodField()
 
     class Meta:
         model = Property
         fields = "__all__"
         read_only_fields = (
             "id","realtor","realtor_name","created_at","updated_at","images",
-            "status_display","deal_type_display"
+            "status_display","deal_type_display","is_favorite"
         )
         extra_kwargs = {
             "address":  {"required": True, "allow_blank": False},
@@ -48,3 +49,17 @@ class PropertySerializer(serializers.ModelSerializer):
             if not attrs.get(k):
                 raise serializers.ValidationError({k: "Required"})
         return attrs     
+    
+    def get_is_favorite(self, obj) -> bool:
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        # без лишних запросов: если в qs уже был prefetch fav_by — будет дёшево,
+        # но и так один EXISTS быстрый
+        return obj.fav_by.filter(user=request.user).exists()
+    
+class FavoriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favorite
+        fields = ("id", "property", "created_at")
+        read_only_fields = ("id", "created_at")

@@ -1,43 +1,25 @@
-@host = http://127.0.0.1:8000
-@api = {{host}}/api/v1/auth
-@email = murem810@gmail.com   # ← поставь свою, если отправляешь через SMTP
-@name = Emir
-@password = 12345678
-
-### 1) Запросить код (на почту придёт письмо)
-POST {{api}}/register-request-code/
+### LOGIN — получить токены (ЧИСТО)
+POST http://127.0.0.1:8000/api/v1/auth/login/
 Content-Type: application/json
 
 {
-  "name": "{{name}}",
-  "email": "{{email}}",
-  "password": "{{password}}"
+  "email": "murem810@gmail.com",
+  "password": "123q123"
 }
 
-> {% client.test("request code ok", function () {
-    client.assert(response.status === 200);
-    client.log("Код отправлен на {{email}}");
-}) %}
 
-### 2) Подтвердить код (вставь код из письма)
-POST {{api}}/register-verify-code/
+### FAV — список моих избранных
+GET http://127.0.0.1:8000/api/v1/favorites/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTI3MDYzLCJpYXQiOjE3NTY5MjYxNjMsImp0aSI6IjY3ZTRjNzM4ZjIzZDRlYmJiOTcyZWExZTA3NDBlMjEzIiwidXNlcl9pZCI6IjIifQ.-vcD4kYOpumbFNV7fhYMOxGrpdeOfRyIOJweaEJHzvQ
+### FAV — toggle ON
+POST http://127.0.0.1:8000/api/v1/favorites/toggle/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTI3MDYzLCJpYXQiOjE3NTY5MjYxNjMsImp0aSI6IjY3ZTRjNzM4ZjIzZDRlYmJiOTcyZWExZTA3NDBlMjEzIiwidXNlcl9pZCI6IjIifQ.-vcD4kYOpumbFNV7fhYMOxGrpdeOfRyIOJweaEJHzvQ
 Content-Type: application/json
 
-{
-  "email": "{{email}}",
-  "code": "123456"   // ← сюда код из письма
-}
+{ "property_id": 1 }
 
-> {% client.test("verify ok", function () {
-    client.assert(response.status === 200);
-    client.assert(response.body.access, "нет access токена");
-    client.global.set("accessToken", response.body.access);
-}) %}
-
-### 3) Проверка защищёнки (пример)
-GET {{host}}/api/v1/properties/
-Authorization: Bearer {{accessToken}}
-
-> {% client.test("protected not 401", function () {
-    client.assert(response.status !== 401, "Unauthorized");
-}) %}
+### FAV — toggle OFF (повторим тот же property_id)
+POST http://127.0.0.1:8000/api/v1/favorites/toggle/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTI3MDYzLCJpYXQiOjE3NTY5MjYxNjMsImp0aSI6IjY3ZTRjNzM4ZjIzZDRlYmJiOTcyZWExZTA3NDBlMjEzIiwidXNlcl9pZCI6IjIifQ.-vcD4kYOpumbFNV7fhYMOxGrpdeOfRyIOJweaEJHzvQ
+Content-Type: application/json
+{ "property_id": 1 }

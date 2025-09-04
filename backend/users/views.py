@@ -6,7 +6,6 @@ from rest_framework.views import APIView
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
@@ -14,9 +13,11 @@ from django.core.mail import send_mail
 from .models import User
 from .serializers import RegisterRequestSerializer, RegisterVerifySerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-import datetime
 from django.conf import settings
 from django.core.mail import send_mail
+
+from rest_framework.generics import RetrieveUpdateAPIView
+from .serializers import MeSerializer
 
 from .serializers import (
     RegisterSerializer,
@@ -38,16 +39,12 @@ class RefreshView(TokenRefreshView):
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "token_refresh"
 
-class MeView(APIView):
+class MeView(RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    def get(self, request):
-        u = request.user
-        return Response({
-            "id": u.id,
-            "username": getattr(u, "username", None),
-            "email": u.email,
-            "role": getattr(u, "role", None),
-        }, status=status.HTTP_200_OK)
+    serializer_class = MeSerializer
+
+    def get_object(self):
+        return self.request.user
 
 class RegisterView(CreateAPIView):
     permission_classes = [permissions.AllowAny]

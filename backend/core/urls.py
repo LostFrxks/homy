@@ -8,11 +8,15 @@ from rest_framework.routers import DefaultRouter
 from properties.views import PropertyViewSet
 from deals.views import DealViewSet
 from audit.views import AuditLogViewSet  # read-only, admin only
+from properties.views import PropertyViewSet, FavoriteViewSet  # <— добавь классы
+
 
 router = DefaultRouter()
 router.register(r"properties", PropertyViewSet, basename="property")
 router.register(r"deals", DealViewSet, basename="deal")
 router.register(r"audit", AuditLogViewSet, basename="audit")  # /api/v1/audit/ (GET list/retrieve), IsAdminUser
+router.register(r"favorites", FavoriteViewSet, basename="favorite")          # <— добавь
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
@@ -23,6 +27,7 @@ urlpatterns = [
 
     # Все viewsets — через единый router
     path("api/v1/", include(router.urls)),
+    path('api/v1/showings/', include('showings.urls')),
 ]
 
 if settings.DEBUG:

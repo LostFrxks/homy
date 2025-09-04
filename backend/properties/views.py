@@ -8,6 +8,11 @@ from .models import Property, PropertyImage
 from .serializers import PropertySerializer, PropertyImageSerializer
 from .permissions import IsOwnerOrReadOnly  
 
+from rest_framework.permissions import IsAuthenticated
+
+from .models import Favorite, Property
+from .serializers import FavoriteSerializer
+
 class PropertyFilter(dj_filters.FilterSet):
     class Meta:
         model = Property
@@ -49,11 +54,93 @@ class PropertyViewSet(viewsets.ModelViewSet):
     
     def get_queryset(self):
         qs = super().get_queryset()
-        u = self.request.user
-        # Админ видит всё; остальные — свои
-        if u.is_staff:
-            return qs
-        return qs.filter(realtor=u)
+        request = self.request
+
+        status_param = request.query_params.get('status')
+        mine = request.query_params.get('mine') in {'1', 'true', 'True'}
+
+        # Явный фильтр по статусу (если пришёл)
+        if status_param:
+            qs = qs.filter(status=status_param)
+
+        if mine:
+            # Мои объекты (любые статусы)
+            qs = qs.filter(realtor=request.user)
+        else:
+            # Каталог: для не-staff по умолчанию показываем только активные,
+            # если статус не указан явно.
+            if not status_param and not request.user.is_staff:
+                try:
+                    from .models import Property
+                    qs = qs.filter(status=Property.Status.ACTIVE)
+                except Exception:
+                    qs = qs.filter(status='active')
+
+        return qs
+    
+    def list(self, request, *args, **kwargs):
+        if request.query_params.get('summary') in {'1', 'true', 'True'}:
+            user = request.user
+            try:
+                from .models import Property
+                ACTIVE = Property.Status.ACTIVE
+                DRAFT = Property.Status.DRAFT
+            except Exception:
+                ACTIVE = 'active'
+                DRAFT = 'draft'
+
+            base_qs = self.queryset  # уже select_related/prefetch
+            data = {
+                'total_active': base_qs.filter(status=ACTIVE).count(),
+                'my_active':    base_qs.filter(status=ACTIVE, realtor=user).count(),
+                'my_drafts':    base_qs.filter(status=DRAFT,  realtor=user).count(),
+            }
+            return Response(data)
+
+        return super().list(request, *args, **kwargs)
+    
+    def destroy(self, request, *args, **kwargs):
+        obj = self.get_object()
+        status_val = getattr(obj, 'status', None)
+
+        # Поддержим и enum, и строку
+        is_draft = (
+            status_val == 'draft' or
+            (hasattr(obj, 'Status') and status_val == getattr(obj.Status, 'DRAFT', None))
+        )
+        if not is_draft:
+            return Response({'detail': 'Можно удалять только черновик.'}, status=400)
+
+        return super().destroy(request, *args, **kwargs)
 
     def perform_create(self, serializer):
         serializer.save(realtor=self.request.user)
+
+
+class FavoriteViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    GET /api/v1/favorites/ — список моих избранных объектов (id избранного + property id)
+    POST /api/v1/favorites/toggle/ {"property_id": N} — переключить избранное
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = FavoriteSerializer
+
+    def get_queryset(self):
+        return Favorite.objects.filter(user=self.request.user).select_related("property").order_by("-created_at")
+
+    @action(detail=False, methods=["post"])
+    def toggle(self, request):
+        prop_id = request.data.get("property_id")
+        if not prop_id:
+            return Response({"detail": "property_id is required"}, status=400)
+        try:
+            prop = Property.objects.get(pk=prop_id)
+        except Property.DoesNotExist:
+            return Response({"detail": "Property not found"}, status=404)
+
+        fav, created = Favorite.objects.get_or_create(user=request.user, property=prop)
+        if created:
+            return Response({"is_favorite": True}, status=status.HTTP_201_CREATED)
+        # уже было — удаляем
+        fav.delete()
+        return Response({"is_favorite": False})
