@@ -1,8 +1,14 @@
 from django.urls import path
+from rest_framework.routers import DefaultRouter
+
 from .views import (
     LoginView, RefreshView, MeView, RegisterView,
-    register_request_code, register_verify_code, ForgotPasswordNoAuthView, ResetPasswordNoAuthView
+    register_request_code, register_verify_code, ForgotPasswordNoAuthView, ResetPasswordNoAuthView, 
+    MyKYCView, KYCAdminViewSet, KYCFileDownloadView
 )
+
+router = DefaultRouter()
+router.register('kyc/admin', KYCAdminViewSet, basename='kyc-admin')
 
 urlpatterns = [
     path("login/",    LoginView.as_view(),    name="auth-login"),
@@ -17,5 +23,8 @@ urlpatterns = [
 
     path("register-request-code/", register_request_code),
     path("register-verify-code/", register_verify_code),
-    
+    path('kyc/', MyKYCView.as_view(), name='my-kyc'),
+    path('kyc/files/<str:field>/<int:user_id>/', KYCFileDownloadView.as_view(), name='kyc-file'),
 ]
+
+urlpatterns += router.urls

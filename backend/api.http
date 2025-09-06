@@ -8,18 +8,32 @@ Content-Type: application/json
 }
 
 
-### FAV — список моих избранных
-GET http://127.0.0.1:8000/api/v1/favorites/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTI3MDYzLCJpYXQiOjE3NTY5MjYxNjMsImp0aSI6IjY3ZTRjNzM4ZjIzZDRlYmJiOTcyZWExZTA3NDBlMjEzIiwidXNlcl9pZCI6IjIifQ.-vcD4kYOpumbFNV7fhYMOxGrpdeOfRyIOJweaEJHzvQ
-### FAV — toggle ON
-POST http://127.0.0.1:8000/api/v1/favorites/toggle/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTI3MDYzLCJpYXQiOjE3NTY5MjYxNjMsImp0aSI6IjY3ZTRjNzM4ZjIzZDRlYmJiOTcyZWExZTA3NDBlMjEzIiwidXNlcl9pZCI6IjIifQ.-vcD4kYOpumbFNV7fhYMOxGrpdeOfRyIOJweaEJHzvQ
+### SAVED SEARCHES — создать
+POST http://127.0.0.1:8000/api/v1/saved-searches/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3MTMzODg2LCJpYXQiOjE3NTcxMzI5ODYsImp0aSI6IjhlOGQ2OWEyZmJmMTQxMTk5NWU4ZTZmMDFmOWE1MmNmIiwidXNlcl9pZCI6IjIifQ.9jDnxzWcqbncyLEpvR-JyZQRmmw-2ukumsjMMw5ETVs
 Content-Type: application/json
 
-{ "property_id": 1 }
+{
+  "name": "2-3 комнаты до 100k (мои активные)",
+  "query": {
+    "rooms": [2,3],
+    "price_max": 100000,
+    "status": "active",
+    "mine": true
+  }
+}
 
-### FAV — toggle OFF (повторим тот же property_id)
-POST http://127.0.0.1:8000/api/v1/favorites/toggle/
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU2OTI3MDYzLCJpYXQiOjE3NTY5MjYxNjMsImp0aSI6IjY3ZTRjNzM4ZjIzZDRlYmJiOTcyZWExZTA3NDBlMjEzIiwidXNlcl9pZCI6IjIifQ.-vcD4kYOpumbFNV7fhYMOxGrpdeOfRyIOJweaEJHzvQ
+### SAVED SEARCHES — список
+GET http://127.0.0.1:8000/api/v1/saved-searches/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3MTMzODg2LCJpYXQiOjE3NTcxMzI5ODYsImp0aSI6IjhlOGQ2OWEyZmJmMTQxMTk5NWU4ZTZmMDFmOWE1MmNmIiwidXNlcl9pZCI6IjIifQ.9jDnxzWcqbncyLEpvR-JyZQRmmw-2ukumsjMMw5ETVs
+
+
+### SAVED SEARCHES — выполнить saved id=1
+POST http://127.0.0.1:8000/api/v1/saved-searches/1/run/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3MTMzODg2LCJpYXQiOjE3NTcxMzI5ODYsImp0aSI6IjhlOGQ2OWEyZmJmMTQxMTk5NWU4ZTZmMDFmOWE1MmNmIiwidXNlcl9pZCI6IjIifQ.9jDnxzWcqbncyLEpvR-JyZQRmmw-2ukumsjMMw5ETVs
 Content-Type: application/json
-{ "property_id": 1 }
+
+### SAVED SEARCHES — удалить saved id=1
+DELETE http://127.0.0.1:8000/api/v1/saved-searches/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU3MTMzODg2LCJpYXQiOjE3NTcxMzI5ODYsImp0aSI6IjhlOGQ2OWEyZmJmMTQxMTk5NWU4ZTZmMDFmOWE1MmNmIiwidXNlcl9pZCI6IjIifQ.9jDnxzWcqbncyLEpvR-JyZQRmmw-2ukumsjMMw5ETVs
+

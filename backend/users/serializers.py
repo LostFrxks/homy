@@ -5,7 +5,7 @@ from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.hashers import make_password
 from django.utils import timezone
 from datetime import timedelta
-from .models import PasswordResetCode, User
+from .models import PasswordResetCode, User, KYCProfile
 from django.core.exceptions import FieldDoesNotExist
 import re
 
@@ -217,7 +217,7 @@ class MeSerializer(serializers.ModelSerializer):
 
     from django.core.exceptions import FieldDoesNotExist
 
-    def get_deals_open(self, user: "User") -> int:
+    def get_deals_open(self, user) -> int:
         """
         Возвращает количество «незакрытых» сделок для пользователя.
         Поддерживает разные схемы полей:
@@ -277,3 +277,44 @@ class MeSerializer(serializers.ModelSerializer):
 
         # Фоллбэк: если никакого статуса нет — просто количество таких сделок
         return qs.count()
+
+class KYCProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KYCProfile
+        # Файлы принимаем как обычные upload (multipart)
+        fields = (
+            'id',
+            'status',
+            'rejection_reason',
+            'doc_front',
+            'doc_back',
+            'selfie',
+            'created_at',
+            'updated_at',
+        )
+        read_only_fields = ('status', 'rejection_reason', 'created_at', 'updated_at')
+
+    def validate(self, attrs):
+        # Если профиль уже approved — больше не редактируем через пользовательский эндпоинт
+        instance: KYCProfile | None = getattr(self, 'instance', None)
+        if instance and not instance.can_user_edit():
+            raise serializers.ValidationError({'detail': 'Профиль подтверждён и не может быть изменён.'})
+        return attrs
+
+
+class KYCAdminUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = KYCProfile
+        fields = (
+            'id',
+            'status',
+            'rejection_reason',
+            'reviewed_at',
+            'reviewed_by',
+        )
+        read_only_fields = ('id',)
+
+    def validate_status(self, value):
+        if value not in (KYCProfile.Status.APPROVED, KYCProfile.Status.REJECTED, KYCProfile.Status.PENDING):
+            raise serializers.ValidationError('Недопустимый статус.')
+        return value

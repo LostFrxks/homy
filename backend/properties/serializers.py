@@ -1,6 +1,6 @@
 # properties/serializers.py
 from rest_framework import serializers
-from .models import Property, PropertyImage, Favorite
+from .models import Property, PropertyImage, Favorite, SavedSearch
 
 class PropertyImageSerializer(serializers.ModelSerializer):
     realtor  = serializers.SerializerMethodField(read_only=True)
@@ -63,3 +63,16 @@ class FavoriteSerializer(serializers.ModelSerializer):
         model = Favorite
         fields = ("id", "property", "created_at")
         read_only_fields = ("id", "created_at")
+
+
+class SavedSearchSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedSearch
+        fields = ('id', 'name', 'query', 'created_at')
+        read_only_fields = ('id', 'created_at')
+
+    def validate_query(self, value):
+        if not isinstance(value, dict):
+            raise serializers.ValidationError('query должен быть JSON-объектом.')
+        # При желании — whitelist ключей
+        return value

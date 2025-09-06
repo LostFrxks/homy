@@ -181,6 +181,8 @@ REST_FRAMEWORK = {
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
+PRIVATE_MEDIA_ROOT = os.getenv('PRIVATE_MEDIA_ROOT', BASE_DIR / 'private_media')
+os.makedirs(PRIVATE_MEDIA_ROOT, exist_ok=True)
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"

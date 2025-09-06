@@ -1,7 +1,8 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django.utils import timezone
-import secrets
+from django.conf import settings
+from core.storages import PrivateMediaStorage
 
 class CustomUserManager(BaseUserManager):
     def create_superuser(self, email, password, **extra_fields):
@@ -117,3 +118,37 @@ class RegistrationCode(models.Model):
 
     def is_valid(self) -> bool:
         return (not self.used) and timezone.now() <= self.expires_at
+    
+
+_private_storage = PrivateMediaStorage()
+
+class KYCProfile(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'pending', 'На модерации'
+        APPROVED = 'approved', 'Подтверждён'
+        REJECTED = 'rejected', 'Отклонён'
+
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='kyc')
+
+    # Файлы (минимальный набор — под себя расширишь)
+    doc_front = models.FileField(upload_to='kyc/docs/', storage=_private_storage, blank=True, null=True)
+    doc_back  = models.FileField(upload_to='kyc/docs/', storage=_private_storage, blank=True, null=True)
+    selfie    = models.FileField(upload_to='kyc/selfies/', storage=_private_storage, blank=True, null=True)
+
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
+    rejection_reason = models.TextField(blank=True, default='')
+
+    reviewed_at = models.DateTimeField(blank=True, null=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='kyc_reviews'
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def can_user_edit(self) -> bool:
+        # Разрешим редактировать только когда не approved
+        return self.status in (self.Status.PENDING, self.Status.REJECTED)
+
+    def __str__(self):
+        return f'KYC<{self.user_id}> {self.status}'

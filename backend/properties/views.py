@@ -1,17 +1,16 @@
-from rest_framework import viewsets, status, permissions, filters
+from rest_framework import viewsets, status, permissions, filters, generics
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters import rest_framework as dj_filters
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
+from django.http import FileResponse, Http404
 
-from .models import Property, PropertyImage
-from .serializers import PropertySerializer, PropertyImageSerializer
-from .permissions import IsOwnerOrReadOnly  
+from .models import Property, PropertyImage, Favorite, SavedSearch, KYCProfile
+from .serializers import PropertySerializer, PropertyImageSerializer, FavoriteSerializer, SavedSearchSerializer, KYCAdminUpdateSerializer, KYCProfileSerializer
+from .permissions import IsOwnerOrReadOnly, IsOwnerOrAdmin
 
 from rest_framework.permissions import IsAuthenticated
-
-from .models import Favorite, Property
-from .serializers import FavoriteSerializer
 
 class PropertyFilter(dj_filters.FilterSet):
     class Meta:
@@ -144,3 +143,119 @@ class FavoriteViewSet(viewsets.ReadOnlyModelViewSet):
         # уже было — удаляем
         fav.delete()
         return Response({"is_favorite": False})
+    
+
+class SavedSearchViewSet(viewsets.ModelViewSet):
+    """
+    CRUD: /api/v1/saved-searches/
+    Выполнить: POST /api/v1/saved-searches/{id}/run/
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = SavedSearchSerializer
+
+    def get_queryset(self):
+        return SavedSearch.objects.filter(user=self.request.user).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @action(detail=True, methods=['post'])
+    def run(self, request, pk=None):
+        saved = self.get_object()
+        query = dict(saved.query or {})
+
+        # Базовый qs — как в каталоге (без mine), активные по умолчанию
+        qs = Property.objects.all()
+
+        # Маппинг «понятных» ключей запроса -> Django lookups
+        mapping = {
+            'status': 'status',
+            'deal_type': 'deal_type',
+            'rooms': 'rooms__in',
+            'price_min': 'price__gte',
+            'price_max': 'price__lte',
+            'realtor_id': 'realtor_id',
+            'district': 'district',
+            'city': 'city',
+        }
+
+        filters = {}
+        for k, lookup in mapping.items():
+            if k in query and query[k] not in (None, '', []):
+                filters[lookup] = query[k]
+        if filters:
+            qs = qs.filter(**filters)
+
+        # Если нужно поддержать «мои» — разрешим ключ mine=true
+        mine = query.get('mine') in (True, '1', 1, 'true', 'True')
+        if mine:
+            qs = qs.filter(realtor=request.user)
+
+        # Если `status` не задан и юзер не staff — показываем только активные, как в каталоге
+        if 'status' not in filters and not request.user.is_staff:
+            try:
+                ACTIVE = Property.Status.ACTIVE
+            except Exception:
+                ACTIVE = 'active'
+            qs = qs.filter(status=ACTIVE)
+
+        # Пагинация и сериализация как обычно
+        page = self.paginate_queryset(qs.order_by('-id'))
+        ser = PropertySerializer(page or qs, many=True, context={'request': request})
+        if page is not None:
+            return self.get_paginated_response(ser.data)
+        return Response(ser.data)
+    
+class MyKYCView(generics.RetrieveUpdateAPIView):
+    """
+    Пользователь получает/обновляет СВОЙ KYC.
+    Файлы присылаем multipart/form-data.
+    """
+    permission_classes = [permissions.IsAuthenticated, IsOwnerOrAdmin]
+    serializer_class = KYCProfileSerializer
+
+    def get_object(self):
+        kyc, _ = KYCProfile.objects.get_or_create(user=self.request.user)
+        self.check_object_permissions(self.request, kyc)
+        return kyc
+
+
+class KYCAdminViewSet(viewsets.ModelViewSet):
+    """
+    Админ-лист/фильтр/апдейт KYC.
+    """
+    permission_classes = [permissions.IsAdminUser]
+    queryset = KYCProfile.objects.select_related('user').all()
+
+    def get_serializer_class(self):
+        return KYCAdminUpdateSerializer
+
+    def perform_update(self, serializer):
+        obj: KYCProfile = serializer.save(
+            reviewed_by=self.request.user,
+            reviewed_at=timezone.now()
+        )
+        # Можно триггерить уведомления здесь (email/celery) — опционально.
+
+
+class KYCFileDownloadView(generics.GenericAPIView):
+    """
+    Защищённая раздача приватных файлов.
+    GET /api/v1/auth/kyc/files/<field>/<user_id>/   
+    field ∈ {doc_front, doc_back, selfie}
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, field: str, user_id: int, *args, **kwargs):
+        kyc = get_object_or_404(KYCProfile, user_id=user_id)
+        # Разрешён доступ владельцу и staff
+        if not (request.user.is_staff or request.user.id == kyc.user_id):
+            raise Http404()
+
+        if field not in ('doc_front', 'doc_back', 'selfie'):
+            raise Http404()
+        f = getattr(kyc, field, None)
+        if not f or not f.name:
+            raise Http404()
+        # отдаём через FileResponse — файл лежит в PRIVATE_MEDIA_ROOT
+        return FileResponse(f.open('rb'), as_attachment=True, filename=f.name.split('/')[-1])    
