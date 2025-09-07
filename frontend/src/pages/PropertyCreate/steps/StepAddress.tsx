@@ -142,11 +142,24 @@ export default function StepAddress({ value, onChange }: Props) {
           <input
             className={s.input}
             placeholder="№"
-            value={value.house || ""}
-            onChange={(e) => onChange({ house: e.target.value })}
+            value={value.hideHouse ? "" : (value.house || "")}
+            onChange={(e) =>
+              onChange({ house: value.hideHouse ? "" : e.target.value })
+            }
             disabled={Boolean(value.hideHouse)}
           />
         </div>
+      </div>
+
+      <div className={s.formItem}>
+        <label className={s.labelRow} style={{margin:"12px 0 6px 0"}}>Пересечение улиц</label>
+        <input
+          className={s.input}
+          type="text"
+          value={value.cross_streets ?? ""}
+          onChange={e => onChange({ cross_streets: e.target.value })}
+          placeholder="ул. X / ул. Y"
+        />
       </div>
 
       {/* Строка с чекбоксом — как текст слева, чекбокс справа, с разделителем снизу */}

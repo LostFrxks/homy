@@ -192,7 +192,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),  # живёт 15 минут
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=90),  # живёт 15 минут
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),    # живёт 7 дней
     "ROTATE_REFRESH_TOKENS": False,                 # если нужно — включи True
     "BLACKLIST_AFTER_ROTATION": True,

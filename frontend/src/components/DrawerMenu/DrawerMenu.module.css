@@ -1,6 +1,6 @@
 .drawer {
   position: fixed; top: 0; left: 0; bottom: 0; width: 320px;
-  background: #757575; color: #fff; transform: translateX(-100%);
+  background: #777777; color: #fff; transform: translateX(-100%);
   transition: transform .2s ease; z-index: 40; display: flex; flex-direction: column;
 }
 .open { transform: translateX(0); }
@@ -12,17 +12,93 @@
 .show { opacity: 1; pointer-events: auto; }
 
 .header { display: flex; align-items: center; gap: 12px; padding: 12px; }
-.close { background: none; border: 0; color: #fff; font-size: 20px; cursor: pointer; }
-.title { font-size: 20px; font-weight: 600; }
-
-.menu { display: flex; flex-direction: column; padding: 8px 12px; gap: 2px; }
-.item {
-  display: flex; gap: 10px; align-items: center;
-  padding: 10px 8px; color: #fff; text-decoration: none;
-  border-bottom: 1px solid rgba(255,255,255,.4);
+.close { 
+  all: unset;
+  padding: 16px 0;
+  background: none; 
+  border: 0; 
+  color:#fff; 
+  font-size: 26px;
+  cursor: pointer; 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 26px;
+  height: 26px;
+  outline: none;       /* убираем фокусную обводку */
+  -webkit-tap-highlight-color: transparent; /* убираем подсветку на мобильных */
+  }
+.close:focus {
+  outline: none;
 }
-.item:last-child { border-bottom: none; }
-.item:hover { background: rgba(255,255,255,.06); }
+
+.close:active {
+  outline: none;
+}
+.title { 
+  font-size: 22px; 
+  font-weight: 500; 
+}
+
+
+.menu { 
+  display: flex; 
+  flex-direction: column; 
+  padding: 8px 12px; 
+}
+
+.item {
+  display: flex; 
+  gap: 10px; 
+  align-items: center;
+  padding: 10px 0px; 
+  color: #fff; 
+  text-decoration: none;
+  border-bottom: 1px solid rgba(255,255,255,.4);
+  transition: all .2s ease;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+
+.item:hover { 
+  background: rgba(255,255,255,.06); 
+  color: #fff;
+}
+
+.item span { 
+  position: relative; 
+  display: inline-block; 
+}
+
+.item span::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0px;
+  height: 1.5px;
+  width: 100%;
+  background: #fff;
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.4s ease;
+}
+.item:hover span::after,
+.item:focus-visible span::after {
+  transform: scaleX(1);
+}
+
+.item,
+.item:link,
+.item:visited,
+.item:hover,
+.item:active {
+  text-decoration: none !important;
+}
+
+
+
+
 .active { background: rgba(255,255,255,.12); }
 .emoji { width: 22px; text-align: center; }
 

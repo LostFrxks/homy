@@ -20,6 +20,20 @@ async function handleAuth(res: Response) {
   return res;
 }
 
+export async function searchComplexes(q: string) {
+  const res = await authedFetch(url(`/complexes/?q=${encodeURIComponent(q)}`));
+  await handleAuth(res);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json(); // [{id, name, district, address, floors, plans: [...], areas: [...]}]
+}
+
+export async function getComplex(id: number) {
+  const res = await authedFetch(url(`/complexes/${id}/`));
+  await handleAuth(res);
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
 export async function login(identity: string, password: string) {
   const payload = identity.includes("@")
     ? { email: identity, username: identity, password }
@@ -170,17 +184,32 @@ export async function getProperties(params?: {
 }
 
 // === API: create ===
-export async function createProperty(payload: {
-  title: string;
-  description?: string;
-  address?: string;
-  deal_type: "sale" | "rent";
-  status: "draft" | "active" | "reserved" | "sold" | "archived";
-  district?: string;
-  rooms: number;
-  area: number;
-  price: number;
-}) {
+export async function createProperty(
+  payload: {
+    title: string;
+    description?: string;
+    address?: string;
+    deal_type: "sale" | "rent";
+    status: "draft" | "active" | "reserved" | "sold" | "archived";
+    district?: string;
+    rooms: number;
+    area: number;
+    price: number;
+    // ↓ новые — опциональные
+    floor?: number | null;
+    kind?: "elite"|"secondary"|"commercial"|"house_land"|"club_house"|"parking";
+    phone?: string;
+    owner_name?: string;
+    cross_streets?: string;
+    condition?: "new_psd"|"requires_repair"|"cosmetic"|"euro";
+    furniture?: boolean;
+    documents?: string[];
+    communications?: string[];
+    offer_type?: "owner"|"intermediary"|"contractor"|"realtor";
+    offer_category?: "buyout"|"urgent"|"exclusive";
+  },
+  photosFiles?: File[]            // ← файлы приходят сюда, не из ответа сервера
+) {
   const res = await authedFetch(url("/properties/"), {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -192,8 +221,17 @@ export async function createProperty(payload: {
     const text = await res.text();
     throw new Error(text || "Failed to create property");
   }
-  const data = (await res.json()) as RawProperty;
-  return normalizeProperty(data);
+
+  const created = await res.json();           // { id, ... }
+
+  // после создания — заливаем фото (если были выбраны)
+  if (photosFiles?.length) {
+    for (const f of photosFiles) {
+      await uploadPropertyImage(created.id, f);  // /properties/{id}/upload_image/
+    }
+  }
+
+  return created;  // можно вернуть как есть, либо нормализовать при желании
 }
 
 async function refreshAccess(): Promise<string | null> {
@@ -356,6 +394,21 @@ export async function createShowing(payload: {
     },
     credentials: "include",
     body: JSON.stringify(payload),
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+
+export async function uploadPropertyImage(propertyId: number | string, file: File) {
+  const base = import.meta.env.VITE_API_URL.replace(/\/+$/, "");
+  const fd = new FormData();
+  fd.append("file", file);
+  const res = await fetch(`${base}/properties/${propertyId}/upload_image/`, {
+    method: "POST",
+    body: fd,
+    headers: { Authorization: `Bearer ${localStorage.getItem("access") || ""}` },
+    credentials: "include",
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();

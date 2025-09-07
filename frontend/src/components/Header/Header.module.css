@@ -19,6 +19,16 @@
   background: transparent; 
   border: 0;
   cursor: pointer;
+  outline: none;       /* убираем фокусную обводку */
+  -webkit-tap-highlight-color: transparent; /* убираем подсветку на мобильных */
+}
+
+.burger:focus {
+  outline: none;
+}
+
+.burger:active {
+  outline: none;
 }
 .burger span {
   display: block;
@@ -27,6 +37,8 @@
   background: #111; 
   border-radius: 2px;
 }
+
+
 
 .logo {
   font-weight: 600;
@@ -42,12 +54,31 @@
 }
 
 .iconBtn {
-  width: 32px; height: 32px;
-  display: grid; place-items: center;
-  color: #111; text-decoration: none;
+  width: 32px; 
+  height: 32px;
+  place-items: center;
+  color: #111; 
+  text-decoration: none;
+  transition: all .5s ease;
 }
+
+
+
+.iconImg {
+  width: 32px;   /* подгони под размер кнопки */
+  height: 32px;
+  display: block;
+  align-items: center;
+  transition: all .5s ease;
+}
+
+.iconImg:hover {
+  filter: brightness(0.9);
+}
+
 .avatar {
-  width: 28px; height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #d1d5db;
   display: inline-block;

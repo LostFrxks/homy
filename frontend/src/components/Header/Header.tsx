@@ -21,7 +21,8 @@ export default function Header() {
         aria-label="Открыть меню"
         onClick={() => setOpen(true)}
       >
-        <span /><span /><span />
+        <div className={styles.burgerLines} />
+          <span /><span /><span />
       </button>
 
       {/* логотип */}
@@ -32,10 +33,14 @@ export default function Header() {
       {/* actions справа */}
       <nav className={styles.right}>
         <NavLink to="/favorites" className={styles.iconBtn} aria-label="Избранное">
-          ♡
+          <img src="/heart.png" alt="Избранное" className={styles.iconImg} />
         </NavLink>
+
         <NavLink to="/profile" className={styles.avatar} aria-label="Профиль" />
-        <button className={styles.logout} onClick={logout}>Выйти</button>
+
+        <button className={styles.logout} onClick={logout}>
+          Выйти
+        </button>
       </nav>
 
       {/* выдвижное меню */}

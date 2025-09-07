@@ -2,46 +2,58 @@ import s from "../Wizard.module.css";
 
 export type DealType = "sale" | "rent";
 export type ObjectType =
-  | "apartment"
-  | "house"
-  | "land"
-  | "commercial"
-  | "business"
-  | "parking";
+  | "elite"        // Элитка
+  | "secondary"    // Вторичная
+  | "commercial"   // Коммерческая
+  | "house_land"   // Дома и участки
+  | "club_house"   // Клубные дома
+  | "parking";     // Парковка
+
+// Порядок строго по ТЗ
+const TYPES: { value: ObjectType; label: string }[] = [
+  { value: "elite",       label: "Элитка" },
+  { value: "secondary",   label: "Вторичная" },
+  { value: "commercial",  label: "Коммерческая" },
+  { value: "house_land",  label: "Дома и участки" },
+  { value: "club_house",  label: "Клубные дома" },
+  { value: "parking",     label: "Парковка" },
+];
 
 type Props = {
   value: { deal: DealType | null; kind: ObjectType | null };
   onChange: (next: Partial<Props["value"]>) => void;
-  onNext?: () => void;
+  onNext?: () => void; // опционально: перейти к следующему шагу после выбора
 };
 
 const DEALS = [
   { key: "sale" as const, label: "Продать" },
-  { key: "rent" as const, label: "Аренда" },
+  { key: "rent" as const, label: "Аренда"  },
 ];
 
-const KINDS = [
-  { key: "apartment" as const, label: "Квартира" },
-  { key: "house" as const, label: "Дом или дача" },
-  { key: "land" as const, label: "Участок" },
-  { key: "commercial" as const, label: "Коммерческая недвижимость" },
-  { key: "business" as const, label: "Бизнес" },
-  { key: "parking" as const, label: "Гараж или паркинг" },
-];
+export default function StepSelectType({ value, onChange, onNext }: Props) {
+  const selectDeal = (d: DealType) => {
+    onChange({ deal: d });
+  };
 
-export default function StepSelectType({ value, onChange }: Props) {
+  const selectKind = (k: ObjectType) => {
+    onChange({ kind: k });
+    if (onNext) onNext();
+  };
+
   return (
     <>
-      {/* Секция 1: Новое объявление */}
+      {/* Секция 1: Тип сделки */}
       <section className={s.section} aria-labelledby="deal-head">
         <div id="deal-head" className={s.groupHead}>Новое объявление</div>
-        <div className={s.pills}>
+        <div className={s.pills} role="list">
           {DEALS.map(d => (
             <button
               key={d.key}
               type="button"
+              role="listitem"
               className={`${s.pill} ${value.deal === d.key ? s.pillActive : ""}`}
-              onClick={() => onChange({ deal: d.key })}
+              onClick={() => selectDeal(d.key)}
+              aria-pressed={value.deal === d.key}
             >
               {d.label}
             </button>
@@ -49,21 +61,23 @@ export default function StepSelectType({ value, onChange }: Props) {
         </div>
       </section>
 
-      {/* Серый разделитель как в макете */}
+      {/* Разделитель */}
       <div className={s.hr} />
 
-      {/* Секция 2: Недвижимость */}
+      {/* Секция 2: Тип недвижимости */}
       <section className={s.section} aria-labelledby="kind-head">
         <div id="kind-head" className={s.groupHead}>Недвижимость</div>
-        <div className={s.pills}>
-          {KINDS.map(k => (
+        <div className={s.pills} role="list">
+          {TYPES.map(t => (
             <button
-              key={k.key}
+              key={t.value}
               type="button"
-              className={`${s.pill} ${value.kind === k.key ? s.pillActive : ""}`}
-              onClick={() => onChange({ kind: k.key })}
+              role="listitem"
+              className={`${s.pill} ${value.kind === t.value ? s.pillActive : ""}`}
+              onClick={() => selectKind(t.value)}
+              aria-pressed={value.kind === t.value}
             >
-              {k.label}
+              {t.label}
             </button>
           ))}
         </div>

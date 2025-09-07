@@ -16,7 +16,7 @@ export default function StepPrice({ value, onChange }: Props) {
     <form className={s.form} onSubmit={(e) => e.preventDefault()}>
 
       {isSale ? (
-        <div className={s.formRow}>
+        <div className={s.formItem}>
           <input
             className={s.input}
             inputMode="numeric"
@@ -27,8 +27,8 @@ export default function StepPrice({ value, onChange }: Props) {
         </div>
       ) : (
         <>
-          <div className={s.formRow}>
-            <label className={s.label}>Цена аренды</label>
+          <div className={s.formItem}>
+            <label className={s.labelRow}>Цена аренды</label>
             <input
               className={s.input}
               inputMode="numeric"
@@ -38,8 +38,8 @@ export default function StepPrice({ value, onChange }: Props) {
             />
           </div>
 
-          <div className={s.formRow}>
-            <label className={s.label}>Период</label>
+          <div className={s.formItem}>
+            <label className={s.labelRow}>Период</label>
             <div className={s.pills}>
               {(["day", "month"] as const).map((p) => (
                 <button
@@ -54,9 +54,9 @@ export default function StepPrice({ value, onChange }: Props) {
             </div>
           </div>
 
-          <div className={s.twoCols}>
-            <div className={s.formRow}>
-              <label className={s.label}>Залог</label>
+          <div className={s.twoColsRow}>
+            <div className={s.formItem}>
+              <label className={s.labelRow}>Залог</label>
               <input
                 className={s.input}
                 inputMode="numeric"
@@ -65,8 +65,8 @@ export default function StepPrice({ value, onChange }: Props) {
                 onChange={(e) => onChange((d) => ({ ...d, deposit: digits(e.target.value) }))}
               />
             </div>
-            <div className={s.formRow}>
-              <label className={s.label}>Предоплата (мес.)</label>
+            <div className={s.formItem}>
+              <label className={s.labelRow}>Предоплата (мес.)</label>
               <input
                 className={s.input}
                 inputMode="numeric"
@@ -77,17 +77,18 @@ export default function StepPrice({ value, onChange }: Props) {
             </div>
           </div>
 
-          <label className={s.checkboxRow}>
+          <label className={s.checkLine}>
+            <span>Коммунальные включены</span>
             <input
               type="checkbox"
               checked={Boolean(value.utilities_included)}
               onChange={(e) => onChange((d) => ({ ...d, utilities_included: e.target.checked }))}
+              style={{ cursor: "pointer" }}
             />
-            <span>Коммунальные включены</span>
           </label>
-
-          <div className={s.formRow}>
-            <label className={s.label}>Комиссия</label>
+              
+          <div className={s.formItem}>
+            <label className={s.labelRow}>Комиссия</label>
             <input
               className={s.input}
               inputMode="numeric"

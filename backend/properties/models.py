@@ -8,12 +8,41 @@ class Property(models.Model):
     class DealType(models.TextChoices):
         SALE = "sale", "Продажа"
         RENT = "rent", "Аренда"
+
     class Status(models.TextChoices):
         DRAFT = "draft", "Черновик"
         ACTIVE = "active", "Активен"
         RESERVED = "reserved", "Зарезервирован"
         SOLD = "sold", "Продан"
         ARCHIVED = "archived", "Архив"
+
+    # +++ НОВОЕ: тип объекта
+    class Kind(models.TextChoices):
+        ELITE = "elite", "Элитка"
+        SECONDARY = "secondary", "Вторичная"
+        COMMERCIAL = "commercial", "Коммерческая"
+        HOUSE_LAND = "house_land", "Дом/участок"
+        CLUB_HOUSE = "club_house", "Клубный дом"
+        PARKING = "parking", "Парковка"
+
+    # +++ НОВОЕ: состояние ремонта
+    class Condition(models.TextChoices):
+        NEW_PSD = "new_psd", "Новостройка/ПСД"
+        REQUIRES_REPAIR = "requires_repair", "Требует ремонта"
+        COSMETIC = "cosmetic", "Косметический"
+        EURO = "euro", "Евроремонт"
+
+    # +++ НОВОЕ: тип/категория предложения
+    class OfferType(models.TextChoices):
+        OWNER = "owner", "Собственник"
+        INTERMEDIARY = "intermediary", "Посредник"
+        CONTRACTOR = "contractor", "Подрядчик"
+        REALTOR = "realtor", "Риелтор"
+
+    class OfferCategory(models.TextChoices):
+        BUYOUT = "buyout", "Выкуп"
+        URGENT = "urgent", "Срочно"
+        EXCLUSIVE = "exclusive", "Эксклюзив"
 
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
@@ -26,10 +55,30 @@ class Property(models.Model):
     deal_type = models.CharField(max_length=10, choices=DealType.choices)
     status = models.CharField(max_length=12, choices=Status.choices, default=Status.ACTIVE)
 
+    # +++ НОВОЕ: дополнительные поля, все опциональные
+    kind = models.CharField(max_length=20, choices=Kind.choices, blank=True, null=True)
+    floor = models.PositiveIntegerField(blank=True, null=True)
+
+    phone = models.CharField(max_length=30, blank=True)              # "+996 501 271 007"
+    owner_name = models.CharField(max_length=120, blank=True)
+    cross_streets = models.CharField(max_length=255, blank=True)
+
+    condition = models.CharField(max_length=20, choices=Condition.choices, blank=True, null=True)
+    furniture = models.BooleanField(blank=True, null=True)
+
+    # массивы (списки кодов)
+    documents = models.JSONField(blank=True, null=True, default=list)       # ["red_book", ...]
+    communications = models.JSONField(blank=True, null=True, default=list)  # ["water", "gas", ...]
+
+    offer_type = models.CharField(max_length=20, choices=OfferType.choices, blank=True, null=True)
+    offer_category = models.CharField(max_length=20, choices=OfferCategory.choices, blank=True, null=True)
+
     realtor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="properties")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    def __str__(self): return f"{self.title} · {self.deal_type} · {self.status}"
+
+    def __str__(self):
+        return f"{self.title} · {self.deal_type} · {self.status}"
 
 class PropertyImage(models.Model):
     property = models.ForeignKey(Property, on_delete=models.CASCADE, related_name="images")

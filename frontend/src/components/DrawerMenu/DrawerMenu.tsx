@@ -3,17 +3,17 @@ import { NavLink } from "react-router-dom";
 import styles from "./DrawerMenu.module.css";
 
 const MENU = [
-  { to: "/objects/duty",    label: "Дежурка",              emoji: "🏠" },
-  { to: "/objects/my",      label: "Мои проекты",          emoji: "🗂️" },
-  { to: "/objects/drafts",  label: "Без рекламы",          emoji: "📰" },
+  { to: "/objects/duty",    label: "Дежурка",              },
+  { to: "/objects/my",      label: "Мои проекты",          },
+  { to: "/objects/drafts",  label: "Без рекламы",          },
 
-  { to: "/showings",        label: "Показы",               emoji: "📅" }, // <-- тут правка
+  { to: "/showings",        label: "Показы",               }, // <-- тут правка
 
-  { to: "/sales",           label: "Продажи",              emoji: "💼" },
-  { to: "/profile",         label: "Профиль",              emoji: "👤" },
-  { to: "/favorites",       label: "Избранное",            emoji: "❤️" },
-  { to: "/saved-searches",  label: "Сохранённые поиски",   emoji: "🔎" },
-  { to: "/support",         label: "Поддержка",            emoji: "🛟" },
+  { to: "/sales",           label: "Продажи",              },
+  { to: "/profile",         label: "Профиль",              },
+  { to: "/favorites",       label: "Избранное",            },
+  { to: "/saved-searches",  label: "Сохранённые поиски",   },
+  { to: "/support",         label: "Поддержка",            },
 ];
 
 
@@ -41,12 +41,11 @@ export default function DrawerMenu({ open, onClose }: Props) {
       />
       {/* выдвижка */}
       <aside className={`${styles.drawer} ${open ? styles.open : ""}`} role="dialog" aria-modal="true">
-        <div className={styles.header}>
-          <button className={styles.close} onClick={onClose} aria-label="Закрыть">✕</button>
-          <div className={styles.title}>Риелтор</div>
-        </div>
-
         <nav className={styles.menu}>
+          <button className={styles.close} onClick={onClose} aria-label="Закрыть">✕</button>
+
+          <div className={styles.title}>Риелтор</div>
+
           {MENU.map((i) => (
             <NavLink
               key={i.to}
@@ -56,7 +55,6 @@ export default function DrawerMenu({ open, onClose }: Props) {
                 isActive ? `${styles.item} ${styles.active}` : styles.item
               }
             >
-              <span className={styles.emoji}>{i.emoji}</span>
               <span>{i.label}</span>
             </NavLink>
           ))}
